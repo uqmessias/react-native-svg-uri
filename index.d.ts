@@ -4,7 +4,7 @@
 // TypeScript Version: 2.2.2
 
 import React, { Component } from 'react'
-import { ImageURISource } from 'react-native'
+import { ImageURISource, StyleProp, ViewStyle, View } from 'react-native'
 
 interface SvgUriProps {
     /**
@@ -24,6 +24,11 @@ interface SvgUriProps {
      * e.g. source={{ur: 'my-path'}}
      */
     source?: ImageURISource
+
+    /**
+     * Style for the @typedef View container
+     */
+    style?: StyleProp<ViewStyle>
 
     /**
      * Direct svg code to render. Similar to inline svg
