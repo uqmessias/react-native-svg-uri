@@ -1,6 +1,6 @@
 {
-  "name": "react-native-svg-uri",
-  "version": "1.2.3",
+  "name": "react-native-svg-renderer",
+  "version": "0.1.0",
   "description": "Render an SVG Image from an URL",
   "main": "index.js",
   "scripts": {
@@ -8,16 +8,17 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/matiascba/react-native-svg-uri.git"
+    "url": "git+https://github.com/uqmessias/react-native-svg-renderer.git"
   },
   "keywords": [
     "react-native",
+    "react-native-svg",
+    "renderer",
     "svg",
     "url",
-    "uri",
-    "http"
+    "uri"
   ],
-  "author": "Matias Cortes",
+  "author": "Uilque Messias (Original react-native-svg-uri author: Matias Cortes)",
   "license": "ISC",
   "dependencies": {
     "xmldom": "^0.1.22"
@@ -26,9 +27,9 @@
     "react-native-svg": "^5.3.0"
   },
   "bugs": {
-    "url": "https://github.com/matiascba/react-native-svg-uri/issues"
+    "url": "https://github.com/uqmessias/react-native-svg-renderer/issues"
   },
-  "homepage": "https://github.com/matiascba/react-native-svg-uri#readme",
+  "homepage": "https://github.com/uqmessias/react-native-svg-renderer#readme",
   "devDependencies": {
     "babel-core": "^6.24.1",
     "babel-preset-react-native": "^2.1.0",
