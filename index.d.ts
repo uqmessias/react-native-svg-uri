@@ -7,48 +7,48 @@ import React, { Component } from 'react'
 import { ImageURISource, StyleProp, ViewStyle, View } from 'react-native'
 
 interface SvgRendererProps {
-    /**
-     * The width of the rendered svg
-     */
-    width?: number | string
+  /**
+   * The width of the rendered svg
+   */
+  width?: number | string
 
-    /**
-     * The height of the rendered svg
-     */
-    height?: number | string
+  /**
+   * The height of the rendered svg
+   */
+  height?: number | string
 
-    /**
-     * Source path for the .svg file
-     * Expects a require('path') to the file or object with uri.
-     * e.g. source={require('my-path')}
-     * e.g. source={{ur: 'my-path'}}
-     */
-    source?: ImageURISource
+  /**
+   * Source path for the .svg file
+   * Expects a require('path') to the file or object with uri.
+   * e.g. source={require('my-path')}
+   * e.g. source={{ur: 'my-path'}}
+   */
+  source?: ImageURISource
 
-    /**
-     * Style for the @typedef View container
-     */
-    style?: StyleProp<ViewStyle>
+  /**
+   * Style for the @typedef View container
+   */
+  style?: StyleProp<ViewStyle>
 
-    /**
-     * Direct svg code to render. Similar to inline svg
-     */
-    svgXmlData?: string
+  /**
+   * Direct svg code to render. Similar to inline svg
+   */
+  svgXmlData?: string
 
-    /**
-     * Fill color for the svg object
-     */
-    fill?: string
+  /**
+   * Fill color for the svg object
+   */
+  fill?: string
 
-    /**
-     * Invoked when load completes successfully.
-     */
-    onLoad?: Function
-  
-    /**
-     * Fill the entire svg element with same color
-     */
-    fillAll?: boolean
+  /**
+   * Invoked when load completes successfully.
+   */
+  onLoad?: Function
+
+  /**
+   * Fill the entire svg element with same color
+   */
+  fillAll?: boolean
 }
 
 export default class SvgRenderer extends Component<SvgRendererProps, {}> { }
