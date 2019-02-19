@@ -1,6 +1,6 @@
 {
   "name": "react-native-svg-renderer",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Render an SVG Image from an URL",
   "main": "index.js",
   "scripts": {
