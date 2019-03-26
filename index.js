@@ -65,7 +65,8 @@ const USE_ATTS = ['href'];
 
 const COMMON_ATTS = ['id', 'fill', 'fillOpacity', 'stroke', 'strokeWidth', 'strokeOpacity', 'opacity',
   'strokeLinecap', 'strokeLinejoin',
-  'strokeDasharray', 'strokeDashoffset', 'x', 'y', 'rotate', 'scale', 'origin', 'originX', 'originY', 'transform', 'clipPath'];
+  'strokeDasharray', 'strokeDashoffset', 'x', 'y', 'rotate', 'scale', 'origin', 'originX', 'originY',
+  'transform', 'clipPath', 'fillRule'];
 
 let ind = 0;
 
