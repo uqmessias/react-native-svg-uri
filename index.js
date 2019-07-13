@@ -173,8 +173,8 @@ class SvgRenderer extends Component {
     }
   }
 
-  createSVGElement(node, childs) {
-    this.trimElementChilden(childs);
+  createSVGElement(node, children) {
+    this.trimElementChilden(children);
     let componentAtts = {};
     const i = ind++;
     switch (node.nodeName) {
@@ -187,58 +187,58 @@ class SvgRenderer extends Component {
           componentAtts.height = this.props.height;
         }
 
-        return <Svg key={i} {...componentAtts}>{childs}</Svg>;
+        return <Svg key={i} {...componentAtts}>{children}</Svg>;
       case 'g':
         componentAtts = this.obtainComponentAtts(node, G_ATTS);
-        return <G key={i} {...componentAtts}>{childs}</G>;
+        return <G key={i} {...componentAtts}>{children}</G>;
       case 'path':
         componentAtts = this.obtainComponentAtts(node, PATH_ATTS);
         if (this.props.fill) {
           componentAtts.fill = this.props.fill;
         }
-        return <Path key={i} {...componentAtts}>{childs}</Path>;
+        return <Path key={i} {...componentAtts}>{children}</Path>;
       case 'circle':
         componentAtts = this.obtainComponentAtts(node, CIRCLE_ATTS);
-        return <Circle key={i} {...componentAtts}>{childs}</Circle>;
+        return <Circle key={i} {...componentAtts}>{children}</Circle>;
       case 'rect':
         componentAtts = this.obtainComponentAtts(node, RECT_ATTS);
-        return <Rect key={i} {...componentAtts}>{childs}</Rect>;
+        return <Rect key={i} {...componentAtts}>{children}</Rect>;
       case 'line':
         componentAtts = this.obtainComponentAtts(node, LINE_ATTS);
-        return <Line key={i} {...componentAtts}>{childs}</Line>;
+        return <Line key={i} {...componentAtts}>{children}</Line>;
       case 'defs':
-        return <Defs key={i}>{childs}</Defs>;
+        return <Defs key={i}>{children}</Defs>;
       case 'use':
         componentAtts = this.obtainComponentAtts(node, USE_ATTS);
         componentAtts.href = fixXlinkHref(node);
         return <Use key={i} {...componentAtts} />;
       case 'linearGradient':
         componentAtts = this.obtainComponentAtts(node, LINEARG_ATTS);
-        return <LinearGradient key={i} {...componentAtts}>{childs}</LinearGradient>;
+        return <LinearGradient key={i} {...componentAtts}>{children}</LinearGradient>;
       case 'radialGradient':
         componentAtts = this.obtainComponentAtts(node, RADIALG_ATTS);
-        return <RadialGradient key={i} {...componentAtts}>{childs}</RadialGradient>;
+        return <RadialGradient key={i} {...componentAtts}>{children}</RadialGradient>;
       case 'stop':
         componentAtts = this.obtainComponentAtts(node, STOP_ATTS);
-        return <Stop key={i} {...componentAtts}>{childs}</Stop>;
+        return <Stop key={i} {...componentAtts}>{children}</Stop>;
       case 'ellipse':
         componentAtts = this.obtainComponentAtts(node, ELLIPSE_ATTS);
-        return <Ellipse key={i} {...componentAtts}>{childs}</Ellipse>;
+        return <Ellipse key={i} {...componentAtts}>{children}</Ellipse>;
       case 'polygon':
         componentAtts = this.obtainComponentAtts(node, POLYGON_ATTS);
-        return <Polygon key={i} {...componentAtts}>{childs}</Polygon>;
+        return <Polygon key={i} {...componentAtts}>{children}</Polygon>;
       case 'polyline':
         componentAtts = this.obtainComponentAtts(node, POLYLINE_ATTS);
-        return <Polyline key={i} {...componentAtts}>{childs}</Polyline>;
+        return <Polyline key={i} {...componentAtts}>{children}</Polyline>;
       case 'text':
         componentAtts = this.obtainComponentAtts(node, TEXT_ATTS);
-        return <Text key={i} {...componentAtts}>{childs}</Text>;
+        return <Text key={i} {...componentAtts}>{children}</Text>;
       case 'tspan':
         componentAtts = this.obtainComponentAtts(node, TEXT_ATTS);
         if (componentAtts.y) {
           componentAtts.y = fixYPosition(componentAtts.y, node)
         }
-        return <TSpan key={i} {...componentAtts}>{childs}</TSpan>;
+        return <TSpan key={i} {...componentAtts}>{children}</TSpan>;
       default:
         return null;
     }
