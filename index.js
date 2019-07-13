@@ -22,7 +22,12 @@ import Svg, {
   Stop,
 } from 'react-native-svg';
 
-import * as utils from './utils';
+import * as utils from './utils/transformers';
+import {
+  getFixedYPosition,
+  getHrefValue,
+  trimElementChilden,
+} from './anything';
 
 const ACCEPTED_SVG_ELEMENTS = [
   'svg',
@@ -88,38 +93,6 @@ const COMMON_ATTS = [
 ];
 
 let ind = 0;
-
-// https://developer.mozilla.org/en-US/docs/Web/SVG/Element/use#Attributes
-function fixXlinkHref(node) {
-  if (node.attributes) {
-    const hrefAttr = Object.keys(node.attributes).find(
-      a => node.attributes[a].name === 'href',
-    );
-    const legacyHrefAttr = Object.keys(node.attributes).find(
-      a => node.attributes[a].name === 'xlink:href',
-    );
-
-    return node.attributes[hrefAttr || legacyHrefAttr].value;
-  }
-  return null;
-}
-
-function fixYPosition(y, node) {
-  if (node.attributes) {
-    const fontSizeAttr = Object.keys(node.attributes).find(
-      a => node.attributes[a].name === 'font-size',
-    );
-    if (fontSizeAttr) {
-      return (
-        '' + (parseFloat(y) - parseFloat(node.attributes[fontSizeAttr].value))
-      );
-    }
-  }
-  if (!node.parentNode) {
-    return y;
-  }
-  return fixYPosition(y, node.parentNode);
-}
 
 class SvgRenderer extends Component {
   constructor(props) {
@@ -190,18 +163,8 @@ class SvgRenderer extends Component {
     return responseXML;
   }
 
-  // Remove empty strings from children array
-  trimElementChilden(children) {
-    for (child of children) {
-      if (typeof child === 'string') {
-        if (child.trim().length === 0)
-          children.splice(children.indexOf(child), 1);
-      }
-    }
-  }
-
-  createSVGElement(node, children) {
-    this.trimElementChilden(children);
+  createSVGElement(node, unTrimmedChildren) {
+    const children = trimElementChilden(unTrimmedChildren);
     let componentAtts = {};
     const i = ind++;
     switch (node.nodeName) {
@@ -261,7 +224,7 @@ class SvgRenderer extends Component {
         return <Defs key={i}>{children}</Defs>;
       case 'use':
         componentAtts = this.obtainComponentAtts(node, USE_ATTS);
-        componentAtts.href = fixXlinkHref(node);
+        componentAtts.href = getHrefValue(node);
         return <Use key={i} {...componentAtts} />;
       case 'linearGradient':
         componentAtts = this.obtainComponentAtts(node, LINEARG_ATTS);
@@ -315,7 +278,7 @@ class SvgRenderer extends Component {
       case 'tspan':
         componentAtts = this.obtainComponentAtts(node, TEXT_ATTS);
         if (componentAtts.y) {
-          componentAtts.y = fixYPosition(componentAtts.y, node);
+          componentAtts.y = getFixedYPosition(node, componentAtts.y);
         }
         return (
           <TSpan key={i} {...componentAtts}>
