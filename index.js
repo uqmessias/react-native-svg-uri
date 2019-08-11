@@ -23,11 +23,7 @@ import Svg, {
 } from 'react-native-svg';
 
 import * as utils from './utils/transformers';
-import {
-  getFixedYPosition,
-  getHrefValue,
-  trimElementChilden,
-} from './anything';
+import { getFixedYPosition, getHrefValue, trimElementChilden } from './utils';
 
 const ACCEPTED_SVG_ELEMENTS = [
   'svg',
