@@ -83,6 +83,11 @@ This will render:
 
 ![Component example](./screenshoots/sample.png)
 
+
+You can also try our [Example app](./example) that will render the following:
+
+![SVG items](./screenshoots/react-native-svg-renderer-some-svg-inputs.gif)
+
 ## Testing
 
 1. Make sure you have installed dependencies with `yarn`
