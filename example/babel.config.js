@@ -1,3 +1,5 @@
+const path = require('path');
+
 module.exports = {
   presets: ['module:metro-react-native-babel-preset'],
   plugins: [
@@ -5,7 +7,7 @@ module.exports = {
       'module-resolver',
       {
         alias: {
-          'react-native-svg-renderer': '..',
+          'react-native-svg-renderer': path.resolve(__dirname, '..'),
         },
       },
     ],
