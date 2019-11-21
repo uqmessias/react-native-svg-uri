@@ -4,6 +4,7 @@ import {
   camelCaseNodeName,
   removePixelsFromNodeValue,
   getEnabledAttributes,
+  obtainComponentAtts,
 } from '..';
 
 describe('attributeTranformer tests', () => {
@@ -87,6 +88,106 @@ describe('attributeTranformer tests', () => {
       const hasEnabledAttribute = getEnabledAttributes(enabledAttributes);
 
       expect(hasEnabledAttribute({ nodeName: 'depth' })).toEqual(false);
+    });
+  });
+
+  describe('obtainComponentAtts', () => {
+    const createNode = (nodeName, nodeValue) => ({ nodeName, nodeValue });
+    const styleWithFill = createNode(
+      'style',
+      'fill:rgb(0,0,255);stroke:rgb(0,0,0)',
+    );
+    const fillNone = createNode('fill', 'none');
+    const attributes = [
+      createNode('opacity', '1px'),
+      createNode('x', undefined),
+      createNode('another-prop-not-allowed', 'value not allowed'),
+      createNode('enabled-prop', 'value enabled'),
+      createNode(
+        'style-allowed-property',
+        'fill:rgb(0,0,255);stroke:rgb(0,0,0)',
+      ),
+    ];
+
+    const enabledAttributes = ['enabledProp', 'styleAllowedProperty'];
+
+    it('gets the components attributes without the "fill" property', () => {
+      const componentAttrs = obtainComponentAtts(
+        { attributes },
+        enabledAttributes,
+      );
+
+      expect(componentAttrs).toEqual({
+        enabledProp: 'value enabled',
+        opacity: '1',
+        styleAllowedProperty: 'fill:rgb(0,0,255);stroke:rgb(0,0,0)',
+        x: undefined,
+      });
+    });
+
+    it('gets the components attributes with "fill" untouched', () => {
+      const componentAttrs = obtainComponentAtts(
+        { attributes: attributes.concat(fillNone) },
+        enabledAttributes,
+      );
+
+      expect(componentAttrs).toEqual({
+        enabledProp: 'value enabled',
+        fill: 'none',
+        opacity: '1',
+        styleAllowedProperty: 'fill:rgb(0,0,255);stroke:rgb(0,0,0)',
+        x: undefined,
+      });
+    });
+
+    it('gets the components attributes with "fill" replaced from "none" by the style', () => {
+      const componentAttrs = obtainComponentAtts(
+        { attributes: attributes.concat([fillNone, styleWithFill]) },
+        enabledAttributes,
+      );
+
+      expect(componentAttrs).toEqual({
+        enabledProp: 'value enabled',
+        fill: 'rgb(0,0,255)',
+        opacity: '1',
+        stroke: 'rgb(0,0,0)',
+        styleAllowedProperty: 'fill:rgb(0,0,255);stroke:rgb(0,0,0)',
+        x: undefined,
+      });
+    });
+
+    it('gets the components attributes with "fill" replaced from style by the fill argument', () => {
+      const componentAttrs = obtainComponentAtts(
+        { attributes: attributes.concat(styleWithFill) },
+        enabledAttributes,
+        '#ffaa00',
+      );
+
+      expect(componentAttrs).toEqual({
+        enabledProp: 'value enabled',
+        fill: '#ffaa00',
+        opacity: '1',
+        stroke: 'rgb(0,0,0)',
+        styleAllowedProperty: 'fill:rgb(0,0,255);stroke:rgb(0,0,0)',
+        x: undefined,
+      });
+    });
+
+    it('gets the components attributes with "fill" replaced from prop by the fill argument', () => {
+      const componentAttrs = obtainComponentAtts(
+        { attributes: attributes.concat(createNode('fill', '#ff0000')) },
+        enabledAttributes,
+        '#0000ff',
+        true,
+      );
+
+      expect(componentAttrs).toEqual({
+        enabledProp: 'value enabled',
+        fill: '#0000ff',
+        opacity: '1',
+        styleAllowedProperty: 'fill:rgb(0,0,255);stroke:rgb(0,0,0)',
+        x: undefined,
+      });
     });
   });
 });
