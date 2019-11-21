@@ -64,30 +64,6 @@ const POLYLINE_ATTS = ['points'];
 
 const USE_ATTS = ['href'];
 
-const COMMON_ATTS = [
-  'id',
-  'fill',
-  'fillOpacity',
-  'stroke',
-  'strokeWidth',
-  'strokeOpacity',
-  'opacity',
-  'strokeLinecap',
-  'strokeLinejoin',
-  'strokeDasharray',
-  'strokeDashoffset',
-  'x',
-  'y',
-  'rotate',
-  'scale',
-  'origin',
-  'originX',
-  'originY',
-  'transform',
-  'clipPath',
-  'fillRule',
-];
-
 let ind = 0;
 
 class SvgRenderer extends Component {
@@ -97,7 +73,6 @@ class SvgRenderer extends Component {
     this.state = { fill: props.fill, svgXmlData: props.svgXmlData };
 
     this.createSVGElement = this.createSVGElement.bind(this);
-    this.obtainComponentAtts = this.obtainComponentAtts.bind(this);
     this.inspectNode = this.inspectNode.bind(this);
     this.fetchSVGData = this.fetchSVGData.bind(this);
 
@@ -163,9 +138,12 @@ class SvgRenderer extends Component {
     const children = trimElementChilden(unTrimmedChildren);
     let componentAtts = {};
     const i = ind++;
+    const { fill, fillAll } = this.state;
+    const { obtainComponentAtts } = utils;
+
     switch (node.nodeName) {
       case 'svg':
-        componentAtts = this.obtainComponentAtts(node, SVG_ATTS);
+        componentAtts = obtainComponentAtts(node, SVG_ATTS, fill, fillAll);
         if (this.props.width) {
           componentAtts.width = this.props.width;
         }
@@ -179,14 +157,14 @@ class SvgRenderer extends Component {
           </Svg>
         );
       case 'g':
-        componentAtts = this.obtainComponentAtts(node, G_ATTS);
+        componentAtts = obtainComponentAtts(node, G_ATTS, fill, fillAll);
         return (
           <G key={i} {...componentAtts}>
             {children}
           </G>
         );
       case 'path':
-        componentAtts = this.obtainComponentAtts(node, PATH_ATTS);
+        componentAtts = obtainComponentAtts(node, PATH_ATTS, fill, fillAll);
         if (this.props.fill) {
           componentAtts.fill = this.props.fill;
         }
@@ -196,21 +174,21 @@ class SvgRenderer extends Component {
           </Path>
         );
       case 'circle':
-        componentAtts = this.obtainComponentAtts(node, CIRCLE_ATTS);
+        componentAtts = obtainComponentAtts(node, CIRCLE_ATTS, fill, fillAll);
         return (
           <Circle key={i} {...componentAtts}>
             {children}
           </Circle>
         );
       case 'rect':
-        componentAtts = this.obtainComponentAtts(node, RECT_ATTS);
+        componentAtts = obtainComponentAtts(node, RECT_ATTS, fill, fillAll);
         return (
           <Rect key={i} {...componentAtts}>
             {children}
           </Rect>
         );
       case 'line':
-        componentAtts = this.obtainComponentAtts(node, LINE_ATTS);
+        componentAtts = obtainComponentAtts(node, LINE_ATTS, fill, fillAll);
         return (
           <Line key={i} {...componentAtts}>
             {children}
@@ -219,60 +197,60 @@ class SvgRenderer extends Component {
       case 'defs':
         return <Defs key={i}>{children}</Defs>;
       case 'use':
-        componentAtts = this.obtainComponentAtts(node, USE_ATTS);
+        componentAtts = obtainComponentAtts(node, USE_ATTS, fill, fillAll);
         componentAtts.href = getHrefValue(node);
         return <Use key={i} {...componentAtts} />;
       case 'linearGradient':
-        componentAtts = this.obtainComponentAtts(node, LINEARG_ATTS);
+        componentAtts = obtainComponentAtts(node, LINEARG_ATTS, fill, fillAll);
         return (
           <LinearGradient key={i} {...componentAtts}>
             {children}
           </LinearGradient>
         );
       case 'radialGradient':
-        componentAtts = this.obtainComponentAtts(node, RADIALG_ATTS);
+        componentAtts = obtainComponentAtts(node, RADIALG_ATTS, fill, fillAll);
         return (
           <RadialGradient key={i} {...componentAtts}>
             {children}
           </RadialGradient>
         );
       case 'stop':
-        componentAtts = this.obtainComponentAtts(node, STOP_ATTS);
+        componentAtts = obtainComponentAtts(node, STOP_ATTS, fill, fillAll);
         return (
           <Stop key={i} {...componentAtts}>
             {children}
           </Stop>
         );
       case 'ellipse':
-        componentAtts = this.obtainComponentAtts(node, ELLIPSE_ATTS);
+        componentAtts = obtainComponentAtts(node, ELLIPSE_ATTS, fill, fillAll);
         return (
           <Ellipse key={i} {...componentAtts}>
             {children}
           </Ellipse>
         );
       case 'polygon':
-        componentAtts = this.obtainComponentAtts(node, POLYGON_ATTS);
+        componentAtts = obtainComponentAtts(node, POLYGON_ATTS, fill, fillAll);
         return (
           <Polygon key={i} {...componentAtts}>
             {children}
           </Polygon>
         );
       case 'polyline':
-        componentAtts = this.obtainComponentAtts(node, POLYLINE_ATTS);
+        componentAtts = obtainComponentAtts(node, POLYLINE_ATTS, fill, fillAll);
         return (
           <Polyline key={i} {...componentAtts}>
             {children}
           </Polyline>
         );
       case 'text':
-        componentAtts = this.obtainComponentAtts(node, TEXT_ATTS);
+        componentAtts = obtainComponentAtts(node, TEXT_ATTS, fill, fillAll);
         return (
           <Text key={i} {...componentAtts}>
             {children}
           </Text>
         );
       case 'tspan':
-        componentAtts = this.obtainComponentAtts(node, TEXT_ATTS);
+        componentAtts = obtainComponentAtts(node, TEXT_ATTS, fill, fillAll);
         if (componentAtts.y) {
           componentAtts.y = getFixedYPosition(node, componentAtts.y);
         }
@@ -284,40 +262,6 @@ class SvgRenderer extends Component {
       default:
         return null;
     }
-  }
-
-  obtainComponentAtts({ attributes }, enabledAttributes) {
-    const styleAtts = {};
-
-    if (this.state.fill && this.props.fillAll) {
-      styleAtts.fill = this.state.fill;
-    }
-
-    Array.from(attributes).forEach(({ nodeName, nodeValue }) => {
-      Object.assign(
-        styleAtts,
-        utils.transformStyle({
-          nodeName,
-          nodeValue,
-          fillProp: this.state.fill,
-        }),
-      );
-    });
-
-    const componentAtts = Array.from(attributes)
-      .map(utils.camelCaseNodeName)
-      .map(utils.removePixelsFromNodeValue)
-      .filter(utils.getEnabledAttributes(enabledAttributes.concat(COMMON_ATTS)))
-      .reduce((acc, { nodeName, nodeValue }) => {
-        acc[nodeName] =
-          this.state.fill && nodeName === 'fill' && nodeValue !== 'none'
-            ? this.state.fill
-            : nodeValue;
-        return acc;
-      }, {});
-    Object.assign(componentAtts, styleAtts);
-
-    return componentAtts;
   }
 
   inspectNode(node) {
