@@ -15,7 +15,7 @@ import styles, { Constants } from './styles';
 
 const App = () => {
   const renderItem = useCallback(
-    ({ item: { title, xml }, index }) => (
+    ({ item: { title, xml, uri }, index }) => (
       <View
         style={[
           styles.itemContainer,
@@ -27,6 +27,7 @@ const App = () => {
         <View style={styles.svgContainer}>
           <SVGRenderer
             svgXmlData={xml}
+            source={!!uri ? { uri } : undefined}
             height={Constants.cellSize}
             width={Constants.cellSize}
           />
