@@ -1,4 +1,4 @@
-import React, { Component } from 'react';
+import React from 'react';
 import { View } from 'react-native';
 import PropTypes from 'prop-types';
 import xmldom from 'xmldom';
@@ -46,11 +46,39 @@ const tagsMap = {
 
 let ind = 0;
 
-class SvgRenderer extends Component {
+// TODO: reorganize it and add tests
+const parseSvgXml = svgXml => {
+  if (!svgXml) {
+    return null;
+  }
+
+  try {
+    const inputSVG = svgXml
+      // Removing comments
+      .substring(svgXml.indexOf('<svg '), svgXml.indexOf('</svg>') + 6)
+      .replace(/<!-(.*?)->/g, '');
+
+    const parser = new xmldom.DOMParser();
+    const doc = parser.parseFromString(inputSVG);
+
+    return doc.childNodes[0];
+  } catch (e) {
+    console.warn(
+      `Ops, an error has occurred while trying to parse a SVG from "${svgXml}"`,
+      e,
+    );
+  }
+
+  return null;
+};
+
+class SvgRenderer extends React.PureComponent {
   constructor(props) {
     super(props);
 
-    this.state = { fill: props.fill, svgXmlData: props.svgXmlData };
+    this.state = {
+      rootSvgNode: null,
+    };
 
     this.isComponentMounted = false;
   }
@@ -58,28 +86,41 @@ class SvgRenderer extends Component {
   async componentDidMount() {
     this.isComponentMounted = true;
 
+    if (!!this.props.svgXmlData) {
+      const rootSvgNode = parseSvgXml(this.props.svgXmlData);
+
+      if (!!rootSvgNode) {
+        this.setState({ rootSvgNode });
+
+        return;
+      }
+    }
+
     if (!!this.props.source) {
       const source = resolveAssetSource(this.props.source) || {};
       await this.handleUri(source.uri);
     }
   }
 
-  async componentDidUpdate({ fill, source, svgXmlData }) {
-    if (source !== this.props.source) {
-      const assetSource = resolveAssetSource(this.props.source) || {};
-      const nextAssetSource = resolveAssetSource(source) || {};
+  async componentDidUpdate({ source, svgXmlData }) {
+    if (svgXmlData !== this.props.svgXmlData) {
+      const rootSvgNode = parseSvgXml(svgXmlData);
 
-      if (nextAssetSource.uri !== assetSource.uri) {
-        await this.handleUri(nextAssetSource.uri);
+      if (!!rootSvgNode) {
+        this.setState({ rootSvgNode });
+
+        return;
       }
     }
 
-    if (svgXmlData !== this.props.svgXmlData) {
-      this.setState({ svgXmlData });
-    }
+    if (source !== this.props.source) {
+      const assetSource =
+        (this.props.source && resolveAssetSource(this.props.source)) || {};
+      const nextAssetSource = (source && resolveAssetSource(source)) || {};
 
-    if (fill !== this.props.fill) {
-      this.setState({ fill });
+      if (assetSource.uri !== nextAssetSource.uri) {
+        await this.handleUri(nextAssetSource.uri);
+      }
     }
   }
 
@@ -95,11 +136,18 @@ class SvgRenderer extends Component {
         `Ops, an error has occurred while trying to fetch a SVG from "${uri}"`,
         error,
       );
+
       return;
     }
 
     if (this.isComponentMounted) {
-      this.setState({ svgXmlData }, () => {
+      const rootSvgNode = parseSvgXml(svgXmlData);
+
+      this.setState({ rootSvgNode }, () => {
+        if (!rootSvgNode) {
+          return;
+        }
+
         const { onLoad } = this.props;
 
         if (typeof onLoad === 'function') {
@@ -119,7 +167,7 @@ class SvgRenderer extends Component {
     }
 
     const children = trimElementChilden(unTrimmedChildren);
-    const { fill, fillAll } = this.state;
+    const { fill, fillAll } = this.props;
     const { obtainComponentAtts } = utils;
     const attrs = obtainComponentAtts(
       node,
@@ -143,31 +191,30 @@ class SvgRenderer extends Component {
   renderNotAllowedSvgElement = node => <View key={ind++} />;
 
   render() {
+    const { rootSvgNode } = this.state;
+
+    if (!rootSvgNode) {
+      return null;
+    }
+
     try {
-      if (this.state.svgXmlData == null) {
-        return null;
-      }
-
-      const inputSVG = this.state.svgXmlData
-        .substring(
-          this.state.svgXmlData.indexOf('<svg '),
-          this.state.svgXmlData.indexOf('</svg>') + 6,
-        )
-        .replace(/<!-(.*?)->/g, '');
-
-      const doc = new xmldom.DOMParser().parseFromString(inputSVG);
-
-      const rootSVG = utils.renderSvgElementByNodeWithItsChildNodes(
-        doc.childNodes[0],
+      // reset the key index
+      ind = 0;
+      const rootSvg = utils.renderSvgElementByNodeWithItsChildNodes(
+        rootSvgNode,
         this.renderSvgElement,
         this.renderNotAllowedSvgElement,
       );
 
-      return <View style={this.props.style}>{rootSVG}</View>;
+      return <View style={this.props.style}>{rootSvg}</View>;
     } catch (e) {
-      console.error('ERROR SVG', e);
-      return null;
+      console.error(
+        `Ops, an error has occurred while trying to render a SVG`,
+        this.props,
+      );
     }
+
+    return null;
   }
 }
 
