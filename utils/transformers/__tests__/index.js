@@ -5,6 +5,8 @@ import {
   removePixelsFromNodeValue,
   getEnabledAttributes,
   obtainComponentAtts,
+  elementsMap,
+  postProcessAttributes,
 } from '..';
 
 describe('attributeTranformer tests', () => {
@@ -189,5 +191,258 @@ describe('attributeTranformer tests', () => {
         x: undefined,
       });
     });
+  });
+
+  describe('elementsMap[*].postProcessAttributes', () => {
+    const emptyAttributesObj = {};
+    const emptyNode = { attributes: [] };
+
+    [
+      'circle',
+      'ellipse',
+      'g',
+      'line',
+      'linearGradient',
+      'polygon',
+      'polyline',
+      'radialGradient',
+      'rect',
+      'stop',
+      'text',
+    ].forEach(elementName => {
+      it(`ensures that the ${elementName}.postProcessAttributes is the default one`, () => {
+        expect(
+          elementsMap[elementName].postProcessAttributes(emptyAttributesObj),
+        ).toBe(postProcessAttributes(emptyAttributesObj));
+
+        expect(elementsMap[elementName].postProcessAttributes).toBe(
+          postProcessAttributes,
+        );
+      });
+    });
+
+    it('always gets a new object regardless the arguments passed to "defs" method', () => {
+      const { postProcessAttributes } = elementsMap['defs'];
+      const withoutProps = postProcessAttributes(
+        emptyAttributesObj,
+        undefined,
+        emptyNode,
+      );
+      const withPropsButNoProperties = postProcessAttributes(
+        emptyAttributesObj,
+        {},
+        emptyNode,
+      );
+      const withNoArgs = postProcessAttributes();
+
+      expect(withoutProps).toEqual(emptyAttributesObj);
+      expect(withoutProps).not.toBe(emptyAttributesObj);
+
+      expect(withPropsButNoProperties).toEqual(emptyAttributesObj);
+      expect(withPropsButNoProperties).not.toBe(emptyAttributesObj);
+
+      expect(withNoArgs).toEqual(emptyAttributesObj);
+      expect(withNoArgs).not.toBe(emptyAttributesObj);
+    });
+
+    // #region Path tests
+    it('gets the same attritubes when there is no "fill" prop or no props at all for "path" method', () => {
+      const { postProcessAttributes } = elementsMap['path'];
+      const withoutProps = postProcessAttributes(
+        emptyAttributesObj,
+        undefined,
+        emptyNode,
+      );
+      const withoutFillProp = postProcessAttributes(
+        emptyAttributesObj,
+        {},
+        emptyNode,
+      );
+      const withFillPropNull = postProcessAttributes(
+        emptyAttributesObj,
+        { fill: null },
+        emptyNode,
+      );
+
+      expect(withoutProps).toBe(emptyAttributesObj);
+      expect(withoutFillProp).toBe(emptyAttributesObj);
+      expect(withFillPropNull).toBe(emptyAttributesObj);
+    });
+
+    it('gets the attritubes with the "fill" prop when it is provided for "path" method', () => {
+      const withFillProp = { fill: 'value for fill prop' };
+      const attrWithFill = elementsMap['path'].postProcessAttributes(
+        emptyAttributesObj,
+        withFillProp,
+        emptyNode,
+      );
+
+      expect(attrWithFill).toEqual(withFillProp);
+      expect(attrWithFill).not.toBe(withFillProp);
+    });
+    // #endregion
+
+    // #region Svg tests
+    it('gets the same attritubes when there is no "height", "width" props or no props at all for "svg" method', () => {
+      const { postProcessAttributes } = elementsMap['svg'];
+      const withoutProps = postProcessAttributes(
+        emptyAttributesObj,
+        undefined,
+        emptyNode,
+      );
+      const withoutHeightOrWidthProp = postProcessAttributes(
+        emptyAttributesObj,
+        {},
+        emptyNode,
+      );
+      const withHeightPropNull = postProcessAttributes(
+        emptyAttributesObj,
+        { height: null },
+        emptyNode,
+      );
+      const withWidthPropNull = postProcessAttributes(
+        emptyAttributesObj,
+        { width: null },
+        emptyNode,
+      );
+      const withHeightAndWidthPropNull = postProcessAttributes(
+        emptyAttributesObj,
+        { height: null, width: null },
+        emptyNode,
+      );
+
+      expect(withoutProps).toBe(emptyAttributesObj);
+      expect(withoutHeightOrWidthProp).toBe(emptyAttributesObj);
+      expect(withHeightPropNull).toBe(emptyAttributesObj);
+      expect(withWidthPropNull).toBe(emptyAttributesObj);
+      expect(withHeightAndWidthPropNull).toBe(emptyAttributesObj);
+    });
+
+    it('gets the attritubes with the "height" prop when it is provided for "svg" method', () => {
+      const withHeightProp = { height: '1342px' };
+      const attrWithHeight = elementsMap['svg'].postProcessAttributes(
+        emptyAttributesObj,
+        withHeightProp,
+        emptyNode,
+      );
+
+      expect(attrWithHeight).toEqual(withHeightProp);
+      expect(attrWithHeight).not.toBe(withHeightProp);
+    });
+
+    it('gets the attritubes with the "width" prop when it is provided for "svg" method', () => {
+      const withWidthProp = { width: '1342px' };
+      const attrWithWidth = elementsMap['svg'].postProcessAttributes(
+        emptyAttributesObj,
+        withWidthProp,
+        emptyNode,
+      );
+
+      expect(attrWithWidth).toEqual(withWidthProp);
+      expect(attrWithWidth).not.toBe(withWidthProp);
+    });
+
+    it('gets the attritubes with the "height" and "width" prop when it is provided for "svg" method', () => {
+      const withHeightAndWidthProp = { height: '1342px', width: '1394px' };
+      const attrWithHeightAndWidth = elementsMap['svg'].postProcessAttributes(
+        emptyAttributesObj,
+        withHeightAndWidthProp,
+        emptyNode,
+      );
+
+      expect(attrWithHeightAndWidth).toEqual(withHeightAndWidthProp);
+      expect(attrWithHeightAndWidth).not.toBe(withHeightAndWidthProp);
+    });
+    // #endregion
+
+    // #region TSpan tests
+    it('gets the same attritubes passed as argument when there is no "y" prop or no props at all for "tspan" method', () => {
+      const { postProcessAttributes } = elementsMap['tspan'];
+      const yNullAttribute = { y: null };
+      const withUndefinedAttributes = postProcessAttributes(
+        undefined,
+        {},
+        emptyNode,
+      );
+      const withNullAttributes = postProcessAttributes(null, {}, emptyNode);
+      const withoutYAttribute = postProcessAttributes(
+        emptyAttributesObj,
+        {},
+        emptyNode,
+      );
+      const withYAttributeNull = postProcessAttributes(
+        yNullAttribute,
+        {},
+        emptyNode,
+      );
+
+      expect(withUndefinedAttributes).toBeUndefined();
+      expect(withNullAttributes).toBeNull();
+      expect(withoutYAttribute).toBe(emptyAttributesObj);
+      expect(withYAttributeNull).toBe(yNullAttribute);
+    });
+
+    it('gets the attritubes with the "y" prop when it is provided for "tspan" method', () => {
+      const withYAttributes = { y: 4 };
+      const attrWithY = elementsMap['tspan'].postProcessAttributes(
+        withYAttributes,
+        {},
+        emptyNode,
+      );
+
+      expect(attrWithY).toEqual(withYAttributes);
+      expect(attrWithY).not.toBe(withYAttributes);
+    });
+    // #endregion
+
+    // #region Use tests
+    const href = '#usingHref';
+    const hrefLegacy = '#usingXlinkHref';
+
+    it('gets hyperlink reference passed as "xlink:href" attribute to "use" method', () => {
+      const { postProcessAttributes } = elementsMap['use'];
+      const nodeWithXLinkHrefAttribute = {
+        attributes: [{ name: 'xlink:href', value: hrefLegacy }],
+      };
+      const withUndefinedAttributes = postProcessAttributes(
+        emptyAttributesObj,
+        {},
+        nodeWithXLinkHrefAttribute,
+      );
+
+      expect(withUndefinedAttributes).toEqual({ href: hrefLegacy });
+    });
+
+    it('gets hyperlink reference passed as "href" attribute to "use" method', () => {
+      const { postProcessAttributes } = elementsMap['use'];
+      const nodeWithXLinkHrefAttribute = {
+        attributes: [{ name: 'href', value: href }],
+      };
+      const withUndefinedAttributes = postProcessAttributes(
+        emptyAttributesObj,
+        {},
+        nodeWithXLinkHrefAttribute,
+      );
+
+      expect(withUndefinedAttributes).toEqual({ href });
+    });
+
+    it('gets hyperlink reference passed as "href" attribute instead of "xlink:href" attribute for "use" method', () => {
+      const { postProcessAttributes } = elementsMap['use'];
+      const nodeWithXLinkHrefAttribute = {
+        attributes: [
+          { name: 'xlink:href', value: hrefLegacy },
+          { name: 'href', value: href },
+        ],
+      };
+      const withUndefinedAttributes = postProcessAttributes(
+        emptyAttributesObj,
+        {},
+        nodeWithXLinkHrefAttribute,
+      );
+
+      expect(withUndefinedAttributes).toEqual({ href });
+    });
+    // #endregion
   });
 });
