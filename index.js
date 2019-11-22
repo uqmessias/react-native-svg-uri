@@ -23,7 +23,7 @@ import Svg, {
 } from 'react-native-svg';
 
 import * as utils from './utils/transformers';
-import { trimElementChilden } from './utils';
+import { fetchSvgData, trimElementChilden } from './utils';
 
 const tagsMap = {
   ['circle']: Circle,
@@ -52,27 +52,25 @@ class SvgRenderer extends Component {
 
     this.state = { fill: props.fill, svgXmlData: props.svgXmlData };
 
-    this.fetchSVGData = this.fetchSVGData.bind(this);
-
     this.isComponentMounted = false;
 
     // Gets the image data from an URL or a static file
     if (props.source) {
       const source = resolveAssetSource(props.source) || {};
-      this.fetchSVGData(source.uri);
+      this.handleUri(source.uri);
     }
   }
 
-  componentWillMount() {
+  async componentWillMount() {
     this.isComponentMounted = true;
   }
 
-  componentWillReceiveProps(nextProps) {
+  async componentWillReceiveProps(nextProps) {
     if (nextProps.source) {
       const source = resolveAssetSource(nextProps.source) || {};
       const oldSource = resolveAssetSource(this.props.source) || {};
       if (source.uri !== oldSource.uri) {
-        this.fetchSVGData(source.uri);
+        await this.handleUri(source.uri);
       }
     }
 
@@ -89,28 +87,27 @@ class SvgRenderer extends Component {
     this.isComponentMounted = false;
   }
 
-  async fetchSVGData(uri) {
-    let responseXML = null,
-      error = null;
-    try {
-      const response = await fetch(uri);
-      responseXML = await response.text();
-    } catch (e) {
-      error = e;
-      console.error('ERROR SVG', e);
-    } finally {
-      if (this.isComponentMounted) {
-        this.setState({ svgXmlData: responseXML }, () => {
-          const { onLoad } = this.props;
-          if (onLoad && !error) {
-            onLoad();
-          }
-        });
-      }
+  handleUri = async uri => {
+    const { data: svgXmlData, error } = await fetchSvgData(uri);
+
+    if (!!error) {
+      console.warn(
+        `Ops, an error has occurred while trying to fetch a SVG from "${uri}"`,
+        error,
+      );
+      return;
     }
 
-    return responseXML;
-  }
+    if (this.isComponentMounted) {
+      this.setState({ svgXmlData }, () => {
+        const { onLoad } = this.props;
+
+        if (typeof onLoad === 'function') {
+          onLoad();
+        }
+      });
+    }
+  };
 
   renderSvgElement = (node, unTrimmedChildren) => {
     const i = ind++;
