@@ -53,33 +53,33 @@ class SvgRenderer extends Component {
     this.state = { fill: props.fill, svgXmlData: props.svgXmlData };
 
     this.isComponentMounted = false;
+  }
 
-    // Gets the image data from an URL or a static file
-    if (props.source) {
-      const source = resolveAssetSource(props.source) || {};
-      this.handleUri(source.uri);
+  async componentDidMount() {
+    this.isComponentMounted = true;
+
+    if (!!this.props.source) {
+      const source = resolveAssetSource(this.props.source) || {};
+      await this.handleUri(source.uri);
     }
   }
 
-  async componentWillMount() {
-    this.isComponentMounted = true;
-  }
+  async componentDidUpdate({ fill, source, svgXmlData }) {
+    if (source !== this.props.source) {
+      const assetSource = resolveAssetSource(this.props.source) || {};
+      const nextAssetSource = resolveAssetSource(source) || {};
 
-  async componentWillReceiveProps(nextProps) {
-    if (nextProps.source) {
-      const source = resolveAssetSource(nextProps.source) || {};
-      const oldSource = resolveAssetSource(this.props.source) || {};
-      if (source.uri !== oldSource.uri) {
-        await this.handleUri(source.uri);
+      if (nextAssetSource.uri !== assetSource.uri) {
+        await this.handleUri(nextAssetSource.uri);
       }
     }
 
-    if (nextProps.svgXmlData !== this.props.svgXmlData) {
-      this.setState({ svgXmlData: nextProps.svgXmlData });
+    if (svgXmlData !== this.props.svgXmlData) {
+      this.setState({ svgXmlData });
     }
 
-    if (nextProps.fill !== this.props.fill) {
-      this.setState({ fill: nextProps.fill });
+    if (fill !== this.props.fill) {
+      this.setState({ fill });
     }
   }
 
