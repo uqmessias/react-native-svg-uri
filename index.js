@@ -44,25 +44,6 @@ const tagsMap = {
   ['use']: Use,
 };
 
-const ACCEPTED_SVG_ELEMENTS = [
-  'svg',
-  'g',
-  'circle',
-  'path',
-  'rect',
-  'defs',
-  'use',
-  'line',
-  'linearGradient',
-  'radialGradient',
-  'stop',
-  'ellipse',
-  'polygon',
-  'polyline',
-  'text',
-  'tspan',
-];
-
 let ind = 0;
 
 class SvgRenderer extends Component {
@@ -71,8 +52,6 @@ class SvgRenderer extends Component {
 
     this.state = { fill: props.fill, svgXmlData: props.svgXmlData };
 
-    this.createSVGElement = this.createSVGElement.bind(this);
-    this.inspectNode = this.inspectNode.bind(this);
     this.fetchSVGData = this.fetchSVGData.bind(this);
 
     this.isComponentMounted = false;
@@ -133,7 +112,7 @@ class SvgRenderer extends Component {
     return responseXML;
   }
 
-  createSVGElement(node, unTrimmedChildren) {
+  renderSvgElement = (node, unTrimmedChildren) => {
     const i = ind++;
     const ElementTag = tagsMap[node.nodeName];
     const element = utils.elementsMap[node.nodeName];
@@ -162,35 +141,9 @@ class SvgRenderer extends Component {
         {children}
       </ElementTag>
     );
-  }
+  };
 
-  inspectNode(node) {
-    // Only process accepted elements
-    if (!ACCEPTED_SVG_ELEMENTS.includes(node.nodeName)) {
-      return <View key={ind++} />;
-    }
-
-    // Process the xml node
-    const arrayElements = [];
-
-    // if have children process them.
-    // Recursive function.
-    if (node.childNodes && node.childNodes.length > 0) {
-      for (let i = 0; i < node.childNodes.length; i++) {
-        const isTextValue = node.childNodes[i].nodeValue;
-        if (isTextValue) {
-          arrayElements.push(node.childNodes[i].nodeValue);
-        } else {
-          const nodo = this.inspectNode(node.childNodes[i]);
-          if (nodo != null) {
-            arrayElements.push(nodo);
-          }
-        }
-      }
-    }
-
-    return this.createSVGElement(node, arrayElements);
-  }
+  renderNotAllowedSvgElement = node => <View key={ind++} />;
 
   render() {
     try {
@@ -207,7 +160,11 @@ class SvgRenderer extends Component {
 
       const doc = new xmldom.DOMParser().parseFromString(inputSVG);
 
-      const rootSVG = this.inspectNode(doc.childNodes[0]);
+      const rootSVG = utils.renderSvgElementByNodeWithItsChildNodes(
+        doc.childNodes[0],
+        this.renderSvgElement,
+        this.renderNotAllowedSvgElement,
+      );
 
       return <View style={this.props.style}>{rootSVG}</View>;
     } catch (e) {
