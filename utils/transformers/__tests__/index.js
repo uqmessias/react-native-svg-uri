@@ -7,6 +7,7 @@ import {
   obtainComponentAtts,
   elementsMap,
   postProcessAttributes,
+  renderSvgElementByNodeWithItsChildNodes,
 } from '..';
 
 describe('attributeTranformer tests', () => {
@@ -444,5 +445,171 @@ describe('attributeTranformer tests', () => {
       expect(withUndefinedAttributes).toEqual({ href });
     });
     // #endregion
+  });
+
+  describe('renderSvgElementByNodeWithItsChildNodes', () => {
+    const svgRenderer = jest.fn((...args) => args);
+    const notAllowedRenderer = jest.fn(node => node.nodeName);
+    const notAllowedNode = {
+      nodeName: 'notAllowedNode',
+    };
+    const svgNodeWithoutChildNodes = {
+      nodeName: 'svg',
+    };
+    const svgNodeWithNotAllowedChildNode = {
+      ...svgNodeWithoutChildNodes,
+      childNodes: [notAllowedNode],
+    };
+
+    afterEach(() => {
+      svgRenderer.mockClear();
+      notAllowedRenderer.mockClear();
+    });
+
+    it('renders "null" when the passed "node" is not allowed and the "notAllowedSvgElementsRenderer" is not a valid function', () => {
+      const rendered = renderSvgElementByNodeWithItsChildNodes(
+        notAllowedNode,
+        svgRenderer,
+        null,
+      );
+      expect(rendered).toBeNull();
+      expect(svgRenderer).not.toHaveBeenCalled();
+      expect(notAllowedRenderer).not.toHaveBeenCalled();
+    });
+
+    it('renders "null" when the "notAllowedSvgElementsRenderer" is not a valid function', () => {
+      const rendered = renderSvgElementByNodeWithItsChildNodes(
+        null,
+        svgRenderer,
+        notAllowedRenderer,
+      );
+
+      expect(rendered).toBeNull();
+      expect(svgRenderer).not.toHaveBeenCalled();
+      expect(notAllowedRenderer).not.toHaveBeenCalled();
+    });
+
+    it('renders "null" when the  "svgElementRenderer" is not a valid function', () => {
+      const rendered = renderSvgElementByNodeWithItsChildNodes(
+        notAllowedNode,
+        null,
+        notAllowedRenderer,
+      );
+
+      expect(rendered).toBeNull();
+      expect(svgRenderer).not.toHaveBeenCalled();
+      expect(notAllowedRenderer).not.toHaveBeenCalled();
+    });
+
+    it('calls "notAllowedSvgElementsRenderer" when the passed "node" is not allowed', () => {
+      const rendered = renderSvgElementByNodeWithItsChildNodes(
+        notAllowedNode,
+        svgRenderer,
+        notAllowedRenderer,
+      );
+
+      expect(rendered).toBe(notAllowedNode.nodeName);
+      expect(svgRenderer).not.toHaveBeenCalled();
+      expect(notAllowedRenderer).toHaveBeenCalledTimes(1);
+      expect(notAllowedRenderer).toHaveBeenCalledWith(notAllowedNode);
+    });
+
+    it('renders the node with no children when it has no child nodes', () => {
+      const rendered = renderSvgElementByNodeWithItsChildNodes(
+        svgNodeWithoutChildNodes,
+        svgRenderer,
+        notAllowedRenderer,
+      );
+
+      expect(rendered).toEqual([svgNodeWithoutChildNodes, []]);
+      expect(svgRenderer).toHaveBeenCalledTimes(1);
+      expect(svgRenderer).toHaveBeenCalledWith(svgNodeWithoutChildNodes, []);
+      expect(notAllowedRenderer).not.toHaveBeenCalled();
+    });
+
+    it('renders the node with no children when it has "0" child nodes', () => {
+      const svgNodeWithZeroChildNodes = {
+        ...svgNodeWithoutChildNodes,
+        childNodes: [],
+      };
+      const rendered = renderSvgElementByNodeWithItsChildNodes(
+        svgNodeWithZeroChildNodes,
+        svgRenderer,
+        notAllowedRenderer,
+      );
+
+      expect(rendered).toEqual([svgNodeWithZeroChildNodes, []]);
+      expect(svgRenderer).toHaveBeenCalledTimes(1);
+      expect(svgRenderer).toHaveBeenCalledWith(svgNodeWithZeroChildNodes, []);
+      expect(notAllowedRenderer).not.toHaveBeenCalled();
+    });
+
+    it('renders the node with a text child and another node child', () => {
+      const textNode = {
+        nodeName: 'text',
+        nodeValue: 'this is the value of the text node',
+      };
+      const svgNodeWithTextAndNormalNodeChildNodes = {
+        ...svgNodeWithoutChildNodes,
+        childNodes: [textNode, svgNodeWithoutChildNodes],
+      };
+      const rendered = renderSvgElementByNodeWithItsChildNodes(
+        svgNodeWithTextAndNormalNodeChildNodes,
+        svgRenderer,
+        notAllowedRenderer,
+      );
+
+      expect(rendered).toEqual([
+        svgNodeWithTextAndNormalNodeChildNodes,
+        [textNode.nodeValue, [svgNodeWithoutChildNodes, []]],
+      ]);
+      expect(svgRenderer).toHaveBeenCalledTimes(2);
+      expect(svgRenderer).toHaveBeenNthCalledWith(
+        1,
+        svgNodeWithoutChildNodes,
+        [],
+      );
+      expect(svgRenderer).toHaveBeenNthCalledWith(
+        2,
+        svgNodeWithTextAndNormalNodeChildNodes,
+        [textNode.nodeValue, [svgNodeWithoutChildNodes, []]],
+      );
+      expect(notAllowedRenderer).not.toHaveBeenCalled();
+    });
+
+    it('renders the node with a not allowed child', () => {
+      const rendered = renderSvgElementByNodeWithItsChildNodes(
+        svgNodeWithNotAllowedChildNode,
+        svgRenderer,
+        notAllowedRenderer,
+      );
+
+      expect(rendered).toEqual([
+        svgNodeWithNotAllowedChildNode,
+        [notAllowedNode.nodeName],
+      ]);
+      expect(svgRenderer).toHaveBeenCalledTimes(1);
+      expect(notAllowedRenderer).toHaveBeenCalledTimes(1);
+      expect(svgRenderer).toHaveBeenCalledWith(svgNodeWithNotAllowedChildNode, [
+        notAllowedNode.nodeName,
+      ]);
+      expect(notAllowedRenderer).toHaveBeenCalledWith(notAllowedNode);
+    });
+
+    it('renders the node with a not allowed child and an invalid "notAllowedSvgElementsRenderer" function', () => {
+      const rendered = renderSvgElementByNodeWithItsChildNodes(
+        svgNodeWithNotAllowedChildNode,
+        svgRenderer,
+        null,
+      );
+
+      expect(rendered).toEqual([svgNodeWithNotAllowedChildNode, []]);
+      expect(svgRenderer).toHaveBeenCalledTimes(1);
+      expect(svgRenderer).toHaveBeenCalledWith(
+        svgNodeWithNotAllowedChildNode,
+        [],
+      );
+      expect(notAllowedRenderer).not.toHaveBeenCalled();
+    });
   });
 });
