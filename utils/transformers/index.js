@@ -222,3 +222,49 @@ export const elementsMap = {
     },
   },
 };
+
+export const renderSvgElementByNodeWithItsChildNodes = (
+  node,
+  svgElementRenderer,
+  notAllowedSvgElementsRenderer,
+) => {
+  if (!node || typeof svgElementRenderer !== 'function') {
+    return null;
+  }
+
+  // Only process accepted elements
+  if (!elementsMap[node.nodeName]) {
+    return typeof notAllowedSvgElementsRenderer === 'function'
+      ? notAllowedSvgElementsRenderer(node)
+      : null;
+  }
+
+  if (!node.childNodes || !node.childNodes.length) {
+    return svgElementRenderer(node, []);
+  }
+
+  const arrayElements = [];
+
+  // if have children process them.
+  for (let i = 0; i < node.childNodes.length; i++) {
+    const nodeTextValue = node.childNodes[i].nodeValue;
+
+    if (nodeTextValue) {
+      // If this is a text node, just returns the text itself
+      arrayElements.push(nodeTextValue);
+    } else {
+      // Tries to process the next child node
+      const svgElement = renderSvgElementByNodeWithItsChildNodes(
+        node.childNodes[i],
+        svgElementRenderer,
+        notAllowedSvgElementsRenderer,
+      );
+
+      if (svgElement != null) {
+        arrayElements.push(svgElement);
+      }
+    }
+  }
+
+  return svgElementRenderer(node, arrayElements);
+};
