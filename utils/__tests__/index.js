@@ -1,4 +1,9 @@
-import { getFixedYPosition, getHrefValue, trimElementChilden } from '../index';
+import {
+  fetchSvgData,
+  getFixedYPosition,
+  getHrefValue,
+  trimElementChilden,
+} from '../index';
 
 describe('utils tests', () => {
   describe('getFixedYPosition tests', () => {
@@ -89,6 +94,54 @@ describe('utils tests', () => {
     it('trims all items', () => {
       const result = trimElementChilden(trimmableElements);
       expect(result).toEqual([]);
+    });
+  });
+
+  describe('fetchSvgData tests', () => {
+    const textPromise = jest.fn(() => Promise.resolve('SVG data'));
+    const fetchReq = jest.fn(() => Promise.resolve({ text: textPromise }));
+    const uri = 'https://uritoosvg.com';
+    const promiseError = new Error('Generic async error');
+
+    global.fetch = fetchReq;
+
+    afterEach(() => {
+      fetchReq.mockClear();
+      textPromise.mockClear();
+    });
+
+    it('gets the data without any error', async () => {
+      const { data, error } = await fetchSvgData(uri);
+
+      expect(fetchReq).toHaveBeenCalledTimes(1);
+      expect(fetchReq).toHaveBeenCalledWith(uri);
+      expect(textPromise).toHaveBeenCalledTimes(1);
+      expect(data).toBe('SVG data');
+      expect(error).toBeUndefined();
+    });
+
+    it('gets an error if the fetch promise fails', async () => {
+      fetchReq.mockRejectedValueOnce(promiseError);
+
+      const { data, error } = await fetchSvgData(uri);
+
+      expect(fetchReq).toHaveBeenCalledTimes(1);
+      expect(fetchReq).toHaveBeenCalledWith(uri);
+      expect(textPromise).not.toHaveBeenCalled();
+      expect(data).toBeUndefined();
+      expect(error).toBe(promiseError);
+    });
+
+    it('gets an error if the text promise fails', async () => {
+      textPromise.mockRejectedValueOnce(promiseError);
+
+      const { data, error } = await fetchSvgData(uri);
+
+      expect(fetchReq).toHaveBeenCalledTimes(1);
+      expect(fetchReq).toHaveBeenCalledWith(uri);
+      expect(textPromise).toHaveBeenCalledTimes(1);
+      expect(data).toBeUndefined();
+      expect(error).toBe(promiseError);
     });
   });
 });
