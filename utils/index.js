@@ -60,3 +60,20 @@ export const trimElementChilden = children =>
   children.filter(
     child => typeof child !== 'string' || child.trim().length !== 0,
   );
+
+export const fetchSvgData = async uri => {
+  let data = undefined;
+  let error = undefined;
+
+  try {
+    const response = await fetch(uri);
+    data = await response.text();
+  } catch (e) {
+    error = e;
+  }
+
+  return {
+    data,
+    error,
+  };
+};
