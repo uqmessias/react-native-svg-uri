@@ -200,7 +200,7 @@ export const elementsMap = {
     allowedAttributes: ALLOWED_ATTRIBUTES.text,
   },
   ['tspan']: {
-    allowedAttributes: ALLOWED_ATTRIBUTES.text,
+    allowedAttributes: ALLOWED_ATTRIBUTES.tspan,
     postProcessAttributes: (attributes, props, node) => {
       let { y: attrY } = attributes || {};
 
