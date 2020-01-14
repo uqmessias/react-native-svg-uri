@@ -120,31 +120,31 @@ const ALLOWED_ATTRIBUTES = {
 export const postProcessAttributes = (attributes, props, node) => attributes;
 
 export const elementsMap = {
-  ['circle']: {
+  circle: {
     postProcessAttributes,
     allowedAttributes: ALLOWED_ATTRIBUTES.circle,
   },
-  ['defs']: {
+  defs: {
     allowedAttributes: [],
     postProcessAttributes: (attributes, props, node) => ({}),
   },
-  ['ellipse']: {
+  ellipse: {
     postProcessAttributes,
     allowedAttributes: ALLOWED_ATTRIBUTES.ellipse,
   },
-  ['g']: {
+  g: {
     postProcessAttributes,
     allowedAttributes: ALLOWED_ATTRIBUTES.g,
   },
-  ['line']: {
+  line: {
     postProcessAttributes,
     allowedAttributes: ALLOWED_ATTRIBUTES.line,
   },
-  ['linearGradient']: {
+  linearGradient: {
     postProcessAttributes,
     allowedAttributes: ALLOWED_ATTRIBUTES.linearGradient,
   },
-  ['path']: {
+  path: {
     allowedAttributes: ALLOWED_ATTRIBUTES.path,
     postProcessAttributes: (attributes, props, node) => {
       const { fill } = props || {};
@@ -156,27 +156,27 @@ export const elementsMap = {
       return Object.assign({}, attributes, { fill });
     },
   },
-  ['polygon']: {
+  polygon: {
     postProcessAttributes,
     allowedAttributes: ALLOWED_ATTRIBUTES.polygon,
   },
-  ['polyline']: {
+  polyline: {
     postProcessAttributes,
     allowedAttributes: ALLOWED_ATTRIBUTES.polyline,
   },
-  ['radialGradient']: {
+  radialGradient: {
     postProcessAttributes,
     allowedAttributes: ALLOWED_ATTRIBUTES.radialGradient,
   },
-  ['rect']: {
+  rect: {
     postProcessAttributes,
     allowedAttributes: ALLOWED_ATTRIBUTES.rect,
   },
-  ['stop']: {
+  stop: {
     postProcessAttributes,
     allowedAttributes: ALLOWED_ATTRIBUTES.stop,
   },
-  ['svg']: {
+  svg: {
     allowedAttributes: ALLOWED_ATTRIBUTES.svg,
     postProcessAttributes: (attributes, props, node) => {
       const { height, width } = props || {};
@@ -198,11 +198,11 @@ export const elementsMap = {
       return attrs;
     },
   },
-  ['text']: {
+  text: {
     postProcessAttributes,
     allowedAttributes: ALLOWED_ATTRIBUTES.text,
   },
-  ['tspan']: {
+  tspan: {
     allowedAttributes: ALLOWED_ATTRIBUTES.tspan,
     postProcessAttributes: (attributes, props, node) => {
       let { y: attrY } = attributes || {};
@@ -216,7 +216,7 @@ export const elementsMap = {
       return Object.assign({}, attributes, { y });
     },
   },
-  ['use']: {
+  use: {
     allowedAttributes: ALLOWED_ATTRIBUTES.use,
     postProcessAttributes: (attributes, props, node) => {
       const href = node && getHrefValue(node);

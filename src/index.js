@@ -25,22 +25,22 @@ import * as utils from './utils/transformers';
 import { fetchSvgData, trimElementChilden } from './utils';
 
 const tagsMap = {
-  ['circle']: Circle,
-  ['defs']: Defs,
-  ['ellipse']: Ellipse,
-  ['g']: G,
-  ['line']: Line,
-  ['linearGradient']: LinearGradient,
-  ['path']: Path,
-  ['polygon']: Polygon,
-  ['polyline']: Polyline,
-  ['radialGradient']: RadialGradient,
-  ['rect']: Rect,
-  ['stop']: Stop,
-  ['svg']: Svg,
-  ['text']: Text,
-  ['tspan']: TSpan,
-  ['use']: Use,
+  circle: Circle,
+  defs: Defs,
+  ellipse: Ellipse,
+  g: G,
+  line: Line,
+  linearGradient: LinearGradient,
+  path: Path,
+  polygon: Polygon,
+  polyline: Polyline,
+  radialGradient: RadialGradient,
+  rect: Rect,
+  stop: Stop,
+  svg: Svg,
+  text: Text,
+  tspan: TSpan,
+  use: Use,
 };
 
 let ind = 0;
