@@ -1,20 +1,20 @@
 import dashToCamelCase from './dashToCamelCase';
 import { getFixedYPosition, getHrefValue } from '..';
 
-export const camelCaseNodeName = ({ nodeName, nodeValue }) => ({
-  nodeName: dashToCamelCase(nodeName),
-  nodeValue,
+export const camelCaseAttribute = attribute => ({
+  ...attribute,
+  name: dashToCamelCase(attribute.name),
 });
 
-export const removePixelsFromNodeValue = ({ nodeName, nodeValue }) => ({
-  nodeName,
-  nodeValue: nodeValue && nodeValue.replace('px', ''),
+export const removePixelsFromAttribute = ({ name, value }) => ({
+  name,
+  value: value && value.replace('px', ''),
 });
 
-export const transformStyle = ({ nodeName, nodeValue, fillProp }) => {
-  if (nodeName === 'style' && !!nodeValue) {
-    return nodeValue.split(';').reduce((acc, attribute) => {
-      const [property, value] = attribute.split(':');
+export const transformStyle = ({ name, value, fillProp }) => {
+  if (name === 'style' && !!value) {
+    return value.split(';').reduce((acc, attribute) => {
+      const [property, propertyValue] = attribute.split(':');
       if (property == '') {
         return acc;
       }
@@ -22,15 +22,18 @@ export const transformStyle = ({ nodeName, nodeValue, fillProp }) => {
       return {
         ...acc,
         [dashToCamelCase(property)]:
-          fillProp && property === 'fill' ? fillProp : value,
+          fillProp && property === 'fill' ? fillProp : propertyValue,
       };
     }, {});
   }
+
   return null;
 };
 
-export const getEnabledAttributes = enabledAttributes => ({ nodeName }) =>
-  enabledAttributes.includes(dashToCamelCase(nodeName));
+export const getEnabledAttributes = enabledAttributes => ({ name }) =>
+  enabledAttributes.some(
+    enabledAttribute => enabledAttribute === dashToCamelCase(name),
+  );
 
 const COMMON_ATTS = [
   'id',
@@ -69,26 +72,24 @@ export const obtainComponentAtts = (
     styleAtts.fill = fill;
   }
 
-  attributeItems.forEach(({ nodeName, nodeValue }) => {
+  attributeItems.forEach(attribute => {
     Object.assign(
       styleAtts,
       transformStyle({
-        nodeName,
-        nodeValue,
+        ...attribute,
         fillProp: fill,
       }),
     );
   });
 
-  const formatToCamelAndRemovePixels = nodeItem =>
-    removePixelsFromNodeValue(camelCaseNodeName(nodeItem));
+  const formatToCamelAndRemovePixels = attribute =>
+    removePixelsFromAttribute(camelCaseAttribute(attribute));
 
   const componentAtts = attributeItems
     .map(formatToCamelAndRemovePixels)
     .filter(getEnabledAttributes(enabledAttributes.concat(COMMON_ATTS)))
-    .reduce((acc, { nodeName, nodeValue }) => {
-      acc[nodeName] =
-        fill && nodeName === 'fill' && nodeValue !== 'none' ? fill : nodeValue;
+    .reduce((acc, { name, value }) => {
+      acc[name] = fill && name === 'fill' && value !== 'none' ? fill : value;
       return acc;
     }, {});
 
@@ -99,6 +100,7 @@ export const obtainComponentAtts = (
 
 const ALLOWED_ATTRIBUTES = {
   circle: ['cx', 'cy', 'r'],
+  defs: [],
   ellipse: ['cx', 'cy', 'rx', 'ry'],
   g: ['id'],
   line: ['x1', 'y1', 'x2', 'y2'],
@@ -111,6 +113,7 @@ const ALLOWED_ATTRIBUTES = {
   stop: ['offset', 'stopColor'],
   svg: ['viewBox', 'width', 'height'],
   text: ['fontFamily', 'fontSize', 'fontWeight', 'textAnchor'],
+  tspan: [],
   use: ['href'],
 };
 
@@ -208,7 +211,7 @@ export const elementsMap = {
         return attributes;
       }
 
-      const y = getFixedYPosition(node, attrY);
+      const y = node && getFixedYPosition(node, attrY);
 
       return Object.assign({}, attributes, { y });
     },
@@ -216,7 +219,7 @@ export const elementsMap = {
   ['use']: {
     allowedAttributes: ALLOWED_ATTRIBUTES.use,
     postProcessAttributes: (attributes, props, node) => {
-      const href = getHrefValue(node);
+      const href = node && getHrefValue(node);
 
       return Object.assign({}, attributes, { href });
     },
