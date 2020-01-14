@@ -6,30 +6,64 @@ import {
 } from '../index';
 
 describe('utils tests', () => {
+  const createNode = (attributes, parentNode, nodeName, nodeValue) => ({
+    attributes,
+    parentNode,
+    nodeName,
+    nodeValue,
+  });
+  const emptyNode = createNode([]);
+
   describe('getFixedYPosition tests', () => {
-    it('gets the value passed to y as the fixed Y position if it has no attributes', () => {
-      const newY = getFixedYPosition({ parentNode: {} }, 20);
-      expect(newY).toBe(20);
-    });
-
     it('gets the value passed to y as the fixed Y position if it has no parent node or font size attribute', () => {
-      const newY = getFixedYPosition({ attributes: [] }, 20);
-      expect(newY).toBe(20);
+      const y = 20;
+      const newY = getFixedYPosition(emptyNode, y);
+      const newYWithParent = getFixedYPosition(
+        createNode([
+          {
+            name: 'another-attribute',
+            value: 'another attribute value',
+          },
+        ]),
+        y,
+      );
+
+      expect(newY).toBe(y);
+      expect(newYWithParent).toBe(y);
     });
 
-    it('gets the value passed to y minus the font-size attribute value', () => {
-      const newY = getFixedYPosition(
+    it('gets the value passed to y as the fixed Y position if it has a parent node but no font size attribute', () => {
+      const y = 20;
+      const newY = getFixedYPosition(emptyNode, y);
+      const newYWithParent = getFixedYPosition(
+        createNode([
+          {
+            name: 'another-attribute',
+            value: 'another attribute value',
+          },
+        ]),
+        y,
+      );
+
+      expect(newY).toBe(y);
+      expect(newYWithParent).toBe(y);
+    });
+
+    it('gets the value passed to y minus the font-size node or parent node attribute value', () => {
+      const attributes = [
         {
-          attributes: [
-            {
-              name: 'font-size',
-              value: 10,
-            },
-          ],
+          name: 'font-size',
+          value: '10',
         },
+      ];
+      const newY = getFixedYPosition(createNode(attributes), 30);
+      const newYFromParent = getFixedYPosition(
+        createNode([], createNode(attributes)),
         30,
       );
-      expect(newY).toBe('20');
+
+      expect(newY).toBe(20);
+      expect(newYFromParent).toBe(20);
     });
   });
 
