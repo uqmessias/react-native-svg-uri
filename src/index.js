@@ -1,8 +1,7 @@
 import React from 'react';
-import { View } from 'react-native';
+import { Image, View } from 'react-native';
 import PropTypes from 'prop-types';
 import xmldom from 'xmldom';
-import resolveAssetSource from 'react-native/Libraries/Image/resolveAssetSource';
 
 import Svg, {
   Circle,
@@ -97,7 +96,7 @@ class SvgRenderer extends React.PureComponent {
     }
 
     if (!!this.props.source) {
-      const source = resolveAssetSource(this.props.source) || {};
+      const source = Image.resolveAssetSource(this.props.source) || {};
       await this.handleUri(source.uri);
     }
   }
@@ -115,8 +114,10 @@ class SvgRenderer extends React.PureComponent {
 
     if (source !== this.props.source) {
       const assetSource =
-        (this.props.source && resolveAssetSource(this.props.source)) || {};
-      const nextAssetSource = (source && resolveAssetSource(source)) || {};
+        (this.props.source && Image.resolveAssetSource(this.props.source)) ||
+        {};
+      const nextAssetSource =
+        (source && Image.resolveAssetSource(source)) || {};
 
       if (assetSource.uri !== nextAssetSource.uri) {
         await this.handleUri(nextAssetSource.uri);
