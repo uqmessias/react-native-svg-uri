@@ -11,16 +11,15 @@
  * @param {number} y
  */
 export const getFixedYPosition = (node, y) => {
-  if (!!node.attributes) {
-    const fontSizeAttr = Object.keys(node.attributes).find(
-      a => node.attributes[a].name === 'font-size',
+  if (!!node.attributes.length) {
+    const fontSizeAttrIndex = Object.values(node.attributes).findIndex(
+      ({ name }) => name === 'font-size',
     );
 
-    if (!!fontSizeAttr) {
+    if (fontSizeAttrIndex >= 0) {
       return (
-        '' +
-        (parseFloat(y.toString()) -
-          parseFloat(node.attributes[fontSizeAttr].value))
+        parseFloat(y.toString()) -
+        parseFloat(node.attributes[fontSizeAttrIndex].value)
       );
     }
   }
