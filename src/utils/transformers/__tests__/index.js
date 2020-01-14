@@ -1,8 +1,8 @@
 import {
   transformStyle,
   camelCase,
-  camelCaseNodeName,
-  removePixelsFromNodeValue,
+  camelCaseAttribute,
+  removePixelsFromAttribute,
   getEnabledAttributes,
   obtainComponentAtts,
   elementsMap,
@@ -15,8 +15,8 @@ describe('attributeTranformer tests', () => {
     it('transforms style attribute', () => {
       expect(
         transformStyle({
-          nodeName: 'style',
-          nodeValue: 'fill:rgb(0,0,255);stroke:rgb(0,0,0)',
+          name: 'style',
+          value: 'fill:rgb(0,0,255);stroke:rgb(0,0,0)',
         }),
       ).toEqual({
         fill: 'rgb(0,0,255)',
@@ -24,22 +24,22 @@ describe('attributeTranformer tests', () => {
       });
     });
 
-    it('transforms style attribute with dash-case attribute and ignores invalid node values', () => {
+    it('transforms style attribute with dash-case attribute and ignores invalid values', () => {
       expect(
         transformStyle({
-          nodeName: 'style',
-          nodeValue: 'stop-color:#ffffff;:ignored-value',
+          name: 'style',
+          value: 'stop-color:#ffffff;:ignored-value',
         }),
       ).toEqual({
         stopColor: '#ffffff',
       });
     });
 
-    it('transforms style attribute with dash-case attribute and ignores invalid node values', () => {
+    it('transforms style attribute with dash-case attribute and ignores invalid values', () => {
       expect(
         transformStyle({
-          nodeName: 'style',
-          nodeValue: 'fill: #ffffff',
+          name: 'style',
+          value: 'fill: #ffffff',
           fillProp: '#ff00ff',
         }),
       ).toEqual({
@@ -48,65 +48,68 @@ describe('attributeTranformer tests', () => {
     });
 
     it('does not transform style attribute because it does not have a valid value', () => {
-      expect(transformStyle({ nodeName: 'style', nodeValue: '' })).toBe(null);
+      expect(transformStyle({ name: 'style', value: '' })).toBe(null);
     });
   });
 
-  describe('camelCaseNodeName', () => {
-    it('gets name of the node in camelCase format', () => {
-      expect(
-        camelCaseNodeName({ nodeName: 'stop-color', nodeValue: '2px' }),
-      ).toEqual({ nodeName: 'stopColor', nodeValue: '2px' });
+  describe('camelCaseAttribute', () => {
+    it('gets name of the  in camelCase format', () => {
+      expect(camelCaseAttribute({ name: 'stop-color', value: '2px' })).toEqual({
+        name: 'stopColor',
+        value: '2px',
+      });
     });
   });
 
-  describe('removePixelsFromNodeValue', () => {
+  describe('removePixelsFromAttribute', () => {
     it('removes pixels from x, y, height and width attributes', () => {
+      expect(removePixelsFromAttribute({ name: 'x', value: '2px' })).toEqual({
+        name: 'x',
+        value: '2',
+      });
+      expect(removePixelsFromAttribute({ name: 'y', value: '4px' })).toEqual({
+        name: 'y',
+        value: '4',
+      });
       expect(
-        removePixelsFromNodeValue({ nodeName: 'x', nodeValue: '2px' }),
-      ).toEqual({ nodeName: 'x', nodeValue: '2' });
+        removePixelsFromAttribute({ name: 'height', value: '65px' }),
+      ).toEqual({ name: 'height', value: '65' });
       expect(
-        removePixelsFromNodeValue({ nodeName: 'y', nodeValue: '4px' }),
-      ).toEqual({ nodeName: 'y', nodeValue: '4' });
-      expect(
-        removePixelsFromNodeValue({ nodeName: 'height', nodeValue: '65px' }),
-      ).toEqual({ nodeName: 'height', nodeValue: '65' });
-      expect(
-        removePixelsFromNodeValue({ nodeName: 'width', nodeValue: '999px' }),
-      ).toEqual({ nodeName: 'width', nodeValue: '999' });
+        removePixelsFromAttribute({ name: 'width', value: '999px' }),
+      ).toEqual({ name: 'width', value: '999' });
     });
   });
 
   describe('getEnabledAttributes', () => {
-    it('return true when nodeName is found', () => {
+    it('return true when name is found', () => {
       const enabledAttributes = ['x', 'y', 'strokeOpacity'];
       const hasEnabledAttribute = getEnabledAttributes(enabledAttributes);
 
-      expect(hasEnabledAttribute({ nodeName: 'x' })).toEqual(true);
-      expect(hasEnabledAttribute({ nodeName: 'stroke-opacity' })).toEqual(true);
+      expect(hasEnabledAttribute({ name: 'x' })).toEqual(true);
+      expect(hasEnabledAttribute({ name: 'stroke-opacity' })).toEqual(true);
     });
 
-    it('return false when nodeName is not found', () => {
+    it('return false when name is not found', () => {
       const enabledAttributes = ['width', 'height'];
       const hasEnabledAttribute = getEnabledAttributes(enabledAttributes);
 
-      expect(hasEnabledAttribute({ nodeName: 'depth' })).toEqual(false);
+      expect(hasEnabledAttribute({ name: 'depth' })).toEqual(false);
     });
   });
 
   describe('obtainComponentAtts', () => {
-    const createNode = (nodeName, nodeValue) => ({ nodeName, nodeValue });
-    const styleWithFill = createNode(
+    const createAttribute = (name, value) => ({ name, value });
+    const styleWithFill = createAttribute(
       'style',
       'fill:rgb(0,0,255);stroke:rgb(0,0,0)',
     );
-    const fillNone = createNode('fill', 'none');
+    const fillNone = createAttribute('fill', 'none');
     const attributes = [
-      createNode('opacity', '1px'),
-      createNode('x', undefined),
-      createNode('another-prop-not-allowed', 'value not allowed'),
-      createNode('enabled-prop', 'value enabled'),
-      createNode(
+      createAttribute('opacity', '1px'),
+      createAttribute('x', ''),
+      createAttribute('another-prop-not-allowed', 'value not allowed'),
+      createAttribute('enabled-prop', 'value enabled'),
+      createAttribute(
         'style-allowed-property',
         'fill:rgb(0,0,255);stroke:rgb(0,0,0)',
       ),
@@ -124,7 +127,7 @@ describe('attributeTranformer tests', () => {
         enabledProp: 'value enabled',
         opacity: '1',
         styleAllowedProperty: 'fill:rgb(0,0,255);stroke:rgb(0,0,0)',
-        x: undefined,
+        x: '',
       });
     });
 
@@ -139,7 +142,7 @@ describe('attributeTranformer tests', () => {
         fill: 'none',
         opacity: '1',
         styleAllowedProperty: 'fill:rgb(0,0,255);stroke:rgb(0,0,0)',
-        x: undefined,
+        x: '',
       });
     });
 
@@ -155,7 +158,7 @@ describe('attributeTranformer tests', () => {
         opacity: '1',
         stroke: 'rgb(0,0,0)',
         styleAllowedProperty: 'fill:rgb(0,0,255);stroke:rgb(0,0,0)',
-        x: undefined,
+        x: '',
       });
     });
 
@@ -172,13 +175,13 @@ describe('attributeTranformer tests', () => {
         opacity: '1',
         stroke: 'rgb(0,0,0)',
         styleAllowedProperty: 'fill:rgb(0,0,255);stroke:rgb(0,0,0)',
-        x: undefined,
+        x: '',
       });
     });
 
     it('gets the components attributes with "fill" replaced from prop by the fill argument', () => {
       const componentAttrs = obtainComponentAtts(
-        { attributes: attributes.concat(createNode('fill', '#ff0000')) },
+        { attributes: attributes.concat(createAttribute('fill', '#ff0000')) },
         enabledAttributes,
         '#0000ff',
         true,
@@ -189,7 +192,7 @@ describe('attributeTranformer tests', () => {
         fill: '#0000ff',
         opacity: '1',
         styleAllowedProperty: 'fill:rgb(0,0,255);stroke:rgb(0,0,0)',
-        x: undefined,
+        x: '',
       });
     });
   });
@@ -261,7 +264,7 @@ describe('attributeTranformer tests', () => {
       );
       const withFillPropNull = postProcessAttributes(
         emptyAttributesObj,
-        { fill: null },
+        { fill: undefined },
         emptyNode,
       );
 
@@ -450,13 +453,14 @@ describe('attributeTranformer tests', () => {
   describe('renderSvgElementByNodeWithItsChildNodes', () => {
     const svgRenderer = jest.fn((...args) => args);
     const notAllowedRenderer = jest.fn(node => node.nodeName);
-    const notAllowedNode = {
-      nodeName: 'notAllowedNode',
-    };
-    const svgNodeWithoutChildNodes = {
-      nodeName: 'svg',
-    };
-    const svgNodeWithNotAllowedChildNode = {
+    const createNode = (attributes, nodeName, nodeValue) => ({
+      attributes,
+      nodeName,
+      nodeValue,
+    });
+    const notAllowedNode = createNode([], 'notAllowedNode');
+    const svgNodeWithoutChildNodes = createNode([], 'svg');
+    const svgNodeWithNotAllowedChildNodes = {
       ...svgNodeWithoutChildNodes,
       childNodes: [notAllowedNode],
     };
@@ -545,10 +549,11 @@ describe('attributeTranformer tests', () => {
     });
 
     it('renders the node with a text child and another node child', () => {
-      const textNode = {
-        nodeName: 'text',
-        nodeValue: 'this is the value of the text node',
-      };
+      const textNode = createNode(
+        [],
+        'text',
+        'this is the value of the text node',
+      );
       const svgNodeWithTextAndNormalNodeChildNodes = {
         ...svgNodeWithoutChildNodes,
         childNodes: [textNode, svgNodeWithoutChildNodes],
@@ -579,34 +584,35 @@ describe('attributeTranformer tests', () => {
 
     it('renders the node with a not allowed child', () => {
       const rendered = renderSvgElementByNodeWithItsChildNodes(
-        svgNodeWithNotAllowedChildNode,
+        svgNodeWithNotAllowedChildNodes,
         svgRenderer,
         notAllowedRenderer,
       );
 
       expect(rendered).toEqual([
-        svgNodeWithNotAllowedChildNode,
+        svgNodeWithNotAllowedChildNodes,
         [notAllowedNode.nodeName],
       ]);
       expect(svgRenderer).toHaveBeenCalledTimes(1);
       expect(notAllowedRenderer).toHaveBeenCalledTimes(1);
-      expect(svgRenderer).toHaveBeenCalledWith(svgNodeWithNotAllowedChildNode, [
-        notAllowedNode.nodeName,
-      ]);
+      expect(svgRenderer).toHaveBeenCalledWith(
+        svgNodeWithNotAllowedChildNodes,
+        [notAllowedNode.nodeName],
+      );
       expect(notAllowedRenderer).toHaveBeenCalledWith(notAllowedNode);
     });
 
     it('renders the node with a not allowed child and an invalid "notAllowedSvgElementsRenderer" function', () => {
       const rendered = renderSvgElementByNodeWithItsChildNodes(
-        svgNodeWithNotAllowedChildNode,
+        svgNodeWithNotAllowedChildNodes,
         svgRenderer,
         null,
       );
 
-      expect(rendered).toEqual([svgNodeWithNotAllowedChildNode, []]);
+      expect(rendered).toEqual([svgNodeWithNotAllowedChildNodes, []]);
       expect(svgRenderer).toHaveBeenCalledTimes(1);
       expect(svgRenderer).toHaveBeenCalledWith(
-        svgNodeWithNotAllowedChildNode,
+        svgNodeWithNotAllowedChildNodes,
         [],
       );
       expect(notAllowedRenderer).not.toHaveBeenCalled();
