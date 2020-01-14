@@ -38,16 +38,20 @@ export const getFixedYPosition = (node, y) => {
  * @returns {string} The node "xlink:href" or "href" value
  */
 export const getHrefValue = node => {
-  if (!!node.attributes) {
-    const attrKeys = Object.keys(node.attributes);
-    const hrefAttr = attrKeys.find(key => node.attributes[key].name === 'href');
-    const legacyHrefAttr = attrKeys.find(
-      key => node.attributes[key].name === 'xlink:href',
+  if (!!node.attributes.length) {
+    const attrs = Object.values(node.attributes);
+    const hrefAttrIndex = attrs.findIndex(({ name }) => name === 'href');
+    const legacyHrefAttrIndex = attrs.findIndex(
+      ({ name }) => name === 'xlink:href',
     );
 
-    return (node.attributes[hrefAttr] || node.attributes[legacyHrefAttr] || {})
-      .value;
+    return (
+      node.attributes[hrefAttrIndex] ||
+      node.attributes[legacyHrefAttrIndex] ||
+      {}
+    ).value;
   }
+
   return null;
 };
 

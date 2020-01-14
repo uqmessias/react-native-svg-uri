@@ -76,35 +76,33 @@ describe('utils tests', () => {
     };
 
     it('gets null when the node has no attributes', () => {
-      const result = getHrefValue({});
+      const result = getHrefValue(emptyNode);
       expect(result).toBe(null);
     });
 
     it('gets undefined when the node has no attributes with "href" or "xlink:href" name', () => {
-      const result = getHrefValue({
-        attributes: [stopColorAttribute],
-      });
+      const result = getHrefValue(createNode([stopColorAttribute]));
       expect(result).toBe(undefined);
     });
 
     it('gets "href" value when there is only "href" to get', () => {
-      const result = getHrefValue({
-        attributes: [stopColorAttribute, hrefAttribute],
-      });
+      const result = getHrefValue(
+        createNode([stopColorAttribute, hrefAttribute]),
+      );
       expect(result).toBe(hrefAttribute.value);
     });
 
     it('gets "href" value even when there is also "xlink:href" to get', () => {
-      const result = getHrefValue({
-        attributes: [stopColorAttribute, hrefAttribute, xLinkhrefAttribute],
-      });
+      const result = getHrefValue(
+        createNode([stopColorAttribute, hrefAttribute, xLinkhrefAttribute]),
+      );
       expect(result).toBe(hrefAttribute.value);
     });
 
     it('gets "href" value', () => {
-      const result = getHrefValue({
-        attributes: [stopColorAttribute, xLinkhrefAttribute],
-      });
+      const result = getHrefValue(
+        createNode([stopColorAttribute, xLinkhrefAttribute]),
+      );
       expect(result).toBe(xLinkhrefAttribute.value);
     });
   });
