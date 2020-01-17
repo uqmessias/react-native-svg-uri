@@ -1,9 +1,13 @@
 {
   "name": "react-native-svg-renderer",
   "version": "0.1.2",
-  "description": "Render an SVG Image from an URL",
+  "description": "Renders SVG Images from URLs and plain SVG string",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
+  "files": [
+    "dist",
+    "screenshoots"
+  ],
   "scripts": {
     "test": "jest"
   },
@@ -19,8 +23,8 @@
     "url",
     "uri"
   ],
-  "author": "Uilque Messias (Original react-native-svg-uri author: Matias Cortes)",
-  "license": "ISC",
+  "author": "Uilque Messias (@uqmessias)",
+  "license": "MIT",
   "dependencies": {
     "xmldom": "^0.1.22"
   },
