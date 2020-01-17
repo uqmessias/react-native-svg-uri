@@ -1,8 +1,10 @@
 import React from 'react';
-import { Image, View } from 'react-native';
-import PropTypes from 'prop-types';
+import {
+  Image,
+  View,
+  ImageResolvedAssetSource,
+} from 'react-native';
 import xmldom from 'xmldom';
-
 import Svg, {
   Circle,
   Ellipse,
@@ -21,10 +23,12 @@ import Svg, {
   Stop,
 } from 'react-native-svg';
 
+import { Props, State, XmlNode } from './utils/types';
+
 import * as utils from './utils/transformers';
 import { fetchSvgData, trimElementChilden } from './utils';
 
-const tagsMap = {
+const tagsMap: Record<utils.IAllowedElements, React.ComponentType> = {
   circle: Circle,
   defs: Defs,
   ellipse: Ellipse,
@@ -46,7 +50,7 @@ const tagsMap = {
 let ind = 0;
 
 // TODO: reorganize it and add tests
-const parseSvgXml = svgXml => {
+const parseSvgXml = (svgXml?: string | null) => {
   if (!svgXml) {
     return null;
   }
@@ -71,16 +75,11 @@ const parseSvgXml = svgXml => {
   return null;
 };
 
-class SvgRenderer extends React.PureComponent {
-  constructor(props) {
-    super(props);
+const emptyAsset = {uri: undefined} as Partial<ImageResolvedAssetSource>;
 
-    this.state = {
-      rootSvgNode: null,
-    };
-
-    this.isComponentMounted = false;
-  }
+class SvgRenderer extends React.PureComponent<Props, State> {
+  private isComponentMounted: boolean = false;
+  state: State = { rootSvgNode: null };
 
   async componentDidMount() {
     this.isComponentMounted = true;
@@ -101,7 +100,7 @@ class SvgRenderer extends React.PureComponent {
     }
   }
 
-  async componentDidUpdate({ source, svgXmlData }) {
+  async componentDidUpdate({ source, svgXmlData }: Props) {
     if (svgXmlData !== this.props.svgXmlData) {
       const rootSvgNode = parseSvgXml(svgXmlData);
 
@@ -113,13 +112,14 @@ class SvgRenderer extends React.PureComponent {
     }
 
     if (source !== this.props.source) {
+
       const assetSource =
         (this.props.source && Image.resolveAssetSource(this.props.source)) ||
-        {};
+        emptyAsset;
       const nextAssetSource =
-        (source && Image.resolveAssetSource(source)) || {};
+        (source && Image.resolveAssetSource(source)) || emptyAsset;
 
-      if (assetSource.uri !== nextAssetSource.uri) {
+      if (assetSource.uri !== nextAssetSource.uri && !!nextAssetSource.uri) {
         await this.handleUri(nextAssetSource.uri);
       }
     }
@@ -129,7 +129,7 @@ class SvgRenderer extends React.PureComponent {
     this.isComponentMounted = false;
   }
 
-  handleUri = async uri => {
+  handleUri = async (uri: string) => {
     const { data: svgXmlData, error } = await fetchSvgData(uri);
 
     if (!!error) {
@@ -158,10 +158,11 @@ class SvgRenderer extends React.PureComponent {
     }
   };
 
-  renderSvgElement = (node, unTrimmedChildren) => {
+  renderSvgElement = (node: XmlNode, unTrimmedChildren: JSX.Element[]) => {
     const i = ind++;
-    const ElementTag = tagsMap[node.nodeName];
-    const element = utils.elementsMap[node.nodeName];
+    const nodeName = node.nodeName as utils.IAllowedElements;
+    const ElementTag = tagsMap[nodeName];
+    const element = utils.elementsMap[nodeName];
 
     if (!ElementTag || !element) {
       return null;
@@ -183,13 +184,13 @@ class SvgRenderer extends React.PureComponent {
     );
 
     return (
-      <ElementTag key={`${node.nodeName}-${i}`} {...componentAtts}>
+      <ElementTag key={`${nodeName}-${i}`} {...componentAtts}>
         {children}
       </ElementTag>
     );
   };
 
-  renderNotAllowedSvgElement = node => <View key={ind++} />;
+  renderNotAllowedSvgElement = (_: XmlNode) => <View key={ind++} />;
 
   render() {
     const { rootSvgNode } = this.state;
@@ -219,15 +220,4 @@ class SvgRenderer extends React.PureComponent {
   }
 }
 
-SvgRenderer.propTypes = {
-  style: PropTypes.object,
-  width: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
-  height: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
-  svgXmlData: PropTypes.string,
-  source: PropTypes.any,
-  fill: PropTypes.string,
-  onLoad: PropTypes.func,
-  fillAll: PropTypes.bool,
-};
-
-module.exports = SvgRenderer;
+export default SvgRenderer;

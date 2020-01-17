@@ -8,5 +8,6 @@ module.exports = {
         },
       },
     ],
+    'module:metro-react-native-babel-preset',
   ],
 };

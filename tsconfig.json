@@ -1,0 +1,24 @@
+{
+  "compilerOptions": {
+    "allowSyntheticDefaultImports": true,
+    "baseUrl": "./",
+    "outDir": "./dist/",
+    "declaration": true,
+    "esModuleInterop": true,
+    "jsx": "react",
+    "lib": ["es6", "es2017.object"],
+    "moduleResolution": "Node",
+    "paths": {
+      "@utils/*": ["src/utils/*"]
+    },
+    "strict": true,
+    "target": "esnext"
+  },
+  "exclude": [
+    "node_modules",
+    "dist",
+    "src/**/__tests__",
+    "src/**/__mocks__",
+    "example",
+  ]
+}
