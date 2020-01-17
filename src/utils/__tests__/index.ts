@@ -1,3 +1,5 @@
+import { Attribute, XmlNode } from '@utils/types';
+
 import {
   fetchSvgData,
   getFixedYPosition,
@@ -6,7 +8,12 @@ import {
 } from '../index';
 
 describe('utils tests', () => {
-  const createNode = (attributes, parentNode, nodeName, nodeValue) => ({
+  const createNode = (
+    attributes: Attribute[] = [],
+    parentNode?: XmlNode,
+    nodeName: string = 'none',
+    nodeValue?: string,
+  ): XmlNode => ({
     attributes,
     parentNode,
     nodeName,

@@ -1,17 +1,26 @@
+import {  Attribute,XmlNode, Props, Attributes } from '@utils/types';
+
 import dashToCamelCase from './dashToCamelCase';
 import { getFixedYPosition, getHrefValue } from '..';
 
-export const camelCaseAttribute = attribute => ({
+export const camelCaseAttribute = (attribute: Attribute): Attribute => ({
   ...attribute,
   name: dashToCamelCase(attribute.name),
 });
 
-export const removePixelsFromAttribute = ({ name, value }) => ({
+export const removePixelsFromAttribute = ({
+  name,
+  value,
+}: Attribute): Attribute => ({
   name,
   value: value && value.replace('px', ''),
 });
 
-export const transformStyle = ({ name, value, fillProp }) => {
+export const transformStyle = ({
+  name,
+  value,
+  fillProp,
+}: Attribute & { fillProp?: string }) => {
   if (name === 'style' && !!value) {
     return value.split(';').reduce((acc, attribute) => {
       const [property, propertyValue] = attribute.split(':');
@@ -24,16 +33,15 @@ export const transformStyle = ({ name, value, fillProp }) => {
         [dashToCamelCase(property)]:
           fillProp && property === 'fill' ? fillProp : propertyValue,
       };
-    }, {});
+    }, {} as Record<string, unknown>);
   }
 
   return null;
 };
 
-export const getEnabledAttributes = enabledAttributes => ({ name }) =>
-  enabledAttributes.some(
-    enabledAttribute => enabledAttribute === dashToCamelCase(name),
-  );
+export const getEnabledAttributes = (enabledAttributes: string[]) => ({
+  name,
+}: Attribute) => enabledAttributes.some(enabledAttribute => enabledAttribute === dashToCamelCase(name));
 
 const COMMON_ATTS = [
   'id',
@@ -60,12 +68,12 @@ const COMMON_ATTS = [
 ];
 
 export const obtainComponentAtts = (
-  { attributes },
-  enabledAttributes,
-  fill,
-  fillAll,
+  { attributes }: XmlNode,
+  enabledAttributes: string[],
+  fill?: string,
+  fillAll?: boolean,
 ) => {
-  const styleAtts = {};
+  const styleAtts: Attributes = {};
   const attributeItems = Array.from(attributes);
 
   if (fill && fillAll) {
@@ -82,16 +90,17 @@ export const obtainComponentAtts = (
     );
   });
 
-  const formatToCamelAndRemovePixels = attribute =>
+  const formatToCamelAndRemovePixels = (attribute: Attribute): Attribute =>
     removePixelsFromAttribute(camelCaseAttribute(attribute));
 
   const componentAtts = attributeItems
     .map(formatToCamelAndRemovePixels)
     .filter(getEnabledAttributes(enabledAttributes.concat(COMMON_ATTS)))
     .reduce((acc, { name, value }) => {
-      acc[name] = fill && name === 'fill' && value !== 'none' ? fill : value;
+      acc[name as keyof Attributes]  =
+        fill && name === 'fill' && value !== 'none' ? fill : value;
       return acc;
-    }, {});
+    }, {} as Attributes);
 
   Object.assign(componentAtts, styleAtts);
 
@@ -117,16 +126,21 @@ const ALLOWED_ATTRIBUTES = {
   use: ['href'],
 };
 
-export const postProcessAttributes = (attributes, props, node) => attributes;
+export type IAllowedElements = keyof typeof ALLOWED_ATTRIBUTES;
 
-export const elementsMap = {
+export const postProcessAttributes = (attributes?: Attributes, props?: Props, node?: XmlNode) => attributes;
+
+export const elementsMap: Record<IAllowedElements, {
+  postProcessAttributes: (attributes?: Attributes, props?: Props, node?: XmlNode) => Partial<typeof attributes>,
+  allowedAttributes: string[]
+}> = {
   circle: {
     postProcessAttributes,
     allowedAttributes: ALLOWED_ATTRIBUTES.circle,
   },
   defs: {
     allowedAttributes: [],
-    postProcessAttributes: (attributes, props, node) => ({}),
+    postProcessAttributes: (attributes?: Attributes, props?: Props, node?: XmlNode) => ({}),
   },
   ellipse: {
     postProcessAttributes,
@@ -146,7 +160,7 @@ export const elementsMap = {
   },
   path: {
     allowedAttributes: ALLOWED_ATTRIBUTES.path,
-    postProcessAttributes: (attributes, props, node) => {
+    postProcessAttributes: (attributes?: Attributes, props?: Props, node?: XmlNode) => {
       const { fill } = props || {};
 
       if (!fill) {
@@ -178,22 +192,17 @@ export const elementsMap = {
   },
   svg: {
     allowedAttributes: ALLOWED_ATTRIBUTES.svg,
-    postProcessAttributes: (attributes, props, node) => {
+    postProcessAttributes: (attributes?: Attributes, props?: Props, node?: XmlNode) => {
       const { height, width } = props || {};
 
       if (!height && !width) {
         return attributes;
       }
 
-      const attrs = Object.assign({}, attributes);
-
-      if (height) {
-        attrs.height = height;
-      }
-
-      if (width) {
-        attrs.width = width;
-      }
+      const attrs = {...attributes} as Partial<Attributes>;
+      
+      attrs.height = height?.toString() ?? attrs.height;
+      attrs.width = width?.toString() ?? attrs.width;
 
       return attrs;
     },
@@ -204,21 +213,21 @@ export const elementsMap = {
   },
   tspan: {
     allowedAttributes: ALLOWED_ATTRIBUTES.tspan,
-    postProcessAttributes: (attributes, props, node) => {
+    postProcessAttributes: (attributes?: Attributes, props?: Props, node?: XmlNode) => {
       let { y: attrY } = attributes || {};
 
       if (!attrY) {
         return attributes;
       }
 
-      const y = node && getFixedYPosition(node, attrY);
+      const y = node && getFixedYPosition(node, parseInt(attrY, 10));
 
       return Object.assign({}, attributes, { y });
     },
   },
   use: {
     allowedAttributes: ALLOWED_ATTRIBUTES.use,
-    postProcessAttributes: (attributes, props, node) => {
+    postProcessAttributes: (attributes?: Attributes, props?: Props, node?: XmlNode) => {
       const href = node && getHrefValue(node);
 
       return Object.assign({}, attributes, { href });
@@ -227,16 +236,16 @@ export const elementsMap = {
 };
 
 export const renderSvgElementByNodeWithItsChildNodes = (
-  node,
-  svgElementRenderer,
-  notAllowedSvgElementsRenderer,
-) => {
+  node: XmlNode | null,
+  svgElementRenderer: ((node: XmlNode, elements: any[]) => JSX.Element | null) | null,
+  notAllowedSvgElementsRenderer: ((node: XmlNode) => JSX.Element) | null,
+): JSX.Element | null => {
   if (!node || typeof svgElementRenderer !== 'function') {
     return null;
   }
 
   // Only process accepted elements
-  if (!elementsMap[node.nodeName]) {
+  if (!elementsMap[node.nodeName as IAllowedElements]) {
     return typeof notAllowedSvgElementsRenderer === 'function'
       ? notAllowedSvgElementsRenderer(node)
       : null;

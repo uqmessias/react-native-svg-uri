@@ -1,16 +1,11 @@
-// @ts-check
-/**
- * @typedef {object} XmlNode
- * @property {Array<{name: string,value: string}>} [attributes]
- * @property {XmlNode} [parentNode]
- */
+import { XmlNode } from './types';
 
 /**
  * Get the fixed Y position for the node
  * @param {XmlNode} node
  * @param {number} y
  */
-export const getFixedYPosition = (node, y) => {
+export const getFixedYPosition = (node: XmlNode, y: number): number => {
   if (!!node.attributes.length) {
     const fontSizeAttrIndex = Object.values(node.attributes).findIndex(
       ({ name }) => name === 'font-size',
@@ -37,7 +32,7 @@ export const getFixedYPosition = (node, y) => {
  * @param {XmlNode} node
  * @returns {string} The node "xlink:href" or "href" value
  */
-export const getHrefValue = node => {
+export const getHrefValue = (node: XmlNode): string | null => {
   if (!!node.attributes.length) {
     const attrs = Object.values(node.attributes);
     const hrefAttrIndex = attrs.findIndex(({ name }) => name === 'href');
@@ -57,14 +52,14 @@ export const getHrefValue = node => {
 
 /**
  * Removes string items from the children array
- * @param {Array<any|string>} children
+ * @param children
  */
-export const trimElementChilden = children =>
+export const trimElementChilden = (children: Array<any | JSX.Element>) =>
   children.filter(
     child => typeof child !== 'string' || child.trim().length !== 0,
   );
 
-export const fetchSvgData = async uri => {
+export const fetchSvgData = async (uri: string) => {
   let data = undefined;
   let error = undefined;
 

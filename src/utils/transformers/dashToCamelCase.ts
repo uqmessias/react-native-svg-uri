@@ -2,7 +2,7 @@
  * Transforms a dash-case string to camelCase
  * @param {string} value
  */
-const dashToCamelCase = value =>
+const dashToCamelCase = (value: string): string =>
   value
     .replace(/(-){2,}/g, '-')
     .replace(/^-(.*)$/g, '$1')
