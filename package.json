@@ -1,6 +1,6 @@
 {
   "name": "react-native-svg-renderer",
-  "version": "0.1.2",
+  "version": "0.2.0-beta",
   "description": "Renders SVG Images from URLs and plain SVG string",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
