@@ -196,7 +196,7 @@ class SvgRenderer extends React.PureComponent<Props, State> {
     const { rootSvgNode } = this.state;
 
     if (!rootSvgNode) {
-      return null;
+      return <View />;
     }
 
     try {
@@ -216,7 +216,7 @@ class SvgRenderer extends React.PureComponent<Props, State> {
       );
     }
 
-    return null;
+    return <View />;
   }
 }
 
