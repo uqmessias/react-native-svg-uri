@@ -39,6 +39,11 @@ style="fill:red;stroke:black;stroke-width:5;opacity:0.5" />
   <polygon points="220,10 300,210 170,250 123,234" style="fill:lime;stroke:purple;stroke-width:1" />
 </svg>`,
   },
+  {
+    title: 'Chevron',
+    xml:
+      '<svg width="7" height="10" viewBox="0 0 7 10"><defs><path d="M8.744.821l1.469 1.51L5.5 7.18.787 2.332 2.256.822 5.5 4.157 8.744.82z" id="a"/></defs><use fill="#000" fill-rule="nonzero" xlink:href="#a" transform="matrix(0 1 1 0 -.5 -.5)"/></svg>',
+  },
 ];
 
 export default SVGs;
